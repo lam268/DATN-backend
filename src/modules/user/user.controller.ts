@@ -47,9 +47,6 @@ import {
     SuccessResponse,
 } from '../../common/helpers/api.response';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ContractService } from '../contract/services/contract.service';
-import { ContractStatus } from '../contract/contract.constant';
-import { AssetService } from '../asset/services/asset.service';
 import {
     AuthorizationGuard,
     Permissions,
@@ -74,8 +71,6 @@ export class UserController {
         private readonly usersService: UserService,
         private readonly i18n: I18nRequestScopeService,
         private readonly databaseService: DatabaseService,
-        private readonly contractService: ContractService,
-        private readonly assetService: AssetService,
         private readonly importUserService: ImportUserService,
     ) {}
 
@@ -467,39 +462,6 @@ export class UserController {
                 );
                 return new ErrorResponse(HttpStatus.ITEM_IS_USING, message, []);
             }
-
-            const contracts = await this.contractService.getAllContractsOfUser(
-                id,
-            );
-            // check has contracts which is active, if > 0 -> return error
-            const hasActiveContract = contracts.some(
-                (contract) => contract.status === ContractStatus.ACTIVE,
-            );
-            if (hasActiveContract) {
-                const message = await this.i18n.translate(
-                    'user.common.error.contract.exist',
-                );
-                return new ErrorResponse(HttpStatus.ITEM_IS_USING, message, []);
-            }
-            // delete other 'expired'/'stopped' contracts of this user
-            const contractIds = contracts.map((contract) => contract.id);
-            await this.contractService.deleteContractByIds(
-                contractIds,
-                req?.loginUser?.id,
-            );
-            // count total asset which is assigned to this user, if > 0 -> return error
-            const assets = await this.assetService.getAssets({
-                assigneeIds: [id],
-                limit: DEFAULT_LIMIT_FOR_PAGINATION,
-            });
-
-            if (assets.items.length > 0) {
-                const message = await this.i18n.translate(
-                    'user.common.error.asset.exist',
-                );
-                return new ErrorResponse(HttpStatus.ITEM_IS_USING, message, []);
-            }
-
             const [message] = await Promise.all([
                 this.i18n.translate('user.delete.success'),
                 this.usersService.deleteUser(id, req?.loginUser?.id),
@@ -565,39 +527,6 @@ export class UserController {
                     ]);
                 }
             }
-
-            if (data.status === UserStatus.INACTIVE) {
-                const activeContractsCount =
-                    await this.contractService.countActiveContractsByUserId(id);
-                if (activeContractsCount) {
-                    const message = await this.i18n.translate(
-                        'user.status.error.contract',
-                    );
-                    return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
-                        {
-                            message,
-                            errorCode: HttpStatus.ITEM_IS_USING,
-                            key: 'contract',
-                        },
-                    ]);
-                }
-                const assetsCount = await this.assetService.countAssetByUserId(
-                    id,
-                );
-                if (assetsCount) {
-                    const message = await this.i18n.translate(
-                        'user.status.error.asset',
-                    );
-                    return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
-                        {
-                            message,
-                            errorCode: HttpStatus.ITEM_IS_USING,
-                            key: 'asset',
-                        },
-                    ]);
-                }
-            }
-
             const savedUser = await this.usersService.updateUserStatus(
                 id,
                 data,

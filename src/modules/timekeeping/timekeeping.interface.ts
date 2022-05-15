@@ -1,4 +1,3 @@
-import { Contract } from '../contract/entity/contract.entity';
 import { IRequestAbsence } from '../request-absence/requestAbsence.interface';
 import { IContractType } from '../setting/setting.interface';
 import { User } from '../user/entity/user.entity';
@@ -62,7 +61,6 @@ export interface IGetTimekeepingsByUserIdQueryString {
 export interface ITimekeepingGroupByDate {
     user?: User;
     userId?: number;
-    contract?: Contract;
     contractType?: IContractType;
     timekeepings?: Record<string, ITimekeeping>;
     timekeepingHistory?: IUserTimekeepingHistory;

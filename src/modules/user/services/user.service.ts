@@ -32,7 +32,6 @@ import { IUpdateUserFinger } from 'src/modules/timekeeping/timekeeping.interface
 import { FingerScannerData } from 'src/modules/timekeeping/entity/finger-scanner-data.entity';
 import { makeFileUrl } from 'src/common/helpers/common.function';
 import { RequestAbsence } from 'src/modules/request-absence/entity/request-absences.entity';
-import { TeamMember } from 'src/modules/team/entity/team-users.entity';
 
 @Injectable()
 export class UserService {
@@ -275,14 +274,6 @@ export class UserService {
                 ),
                 this.dbManager.update(
                     FingerScannerData,
-                    { userId: id },
-                    {
-                        deletedAt: timeNow,
-                        deletedBy,
-                    },
-                ),
-                this.dbManager.update(
-                    TeamMember,
                     { userId: id },
                     {
                         deletedAt: timeNow,

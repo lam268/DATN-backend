@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { Asset } from 'src/modules/asset/entity/asset.entity';
 import { GlobalDataService } from 'src/modules/common/services/global-data.service';
 import { GeneralSettings } from 'src/modules/common/entity/general-settings.entity';
 import { User } from 'src/modules/user/entity/user.entity';
@@ -12,8 +11,6 @@ import {
 import { SettingKey, settingListAtttributes } from '../setting.constant';
 import { UserService } from 'src/modules/user/services/user.service';
 import reduce from 'lodash/reduce';
-import { AssetService } from 'src/modules/asset/services/asset.service';
-import { RecruitmentService } from 'src/modules/recruitment/service/candidate.service';
 
 @Injectable()
 export class SettingService {
@@ -22,8 +19,6 @@ export class SettingService {
         private readonly dbManager: EntityManager,
         private readonly globalDataService: GlobalDataService,
         private readonly userService: UserService,
-        private readonly assetService: AssetService,
-        private readonly recruitmentService: RecruitmentService,
     ) {}
 
     async getSettingByKey(key: SettingKey) {
@@ -89,27 +84,6 @@ export class SettingService {
         }
     }
 
-    // check if new assetCategory data contains all category of asset in asset table
-    async validateAssetCategory(
-        generalSetting: GeneralSettingDto<GeneralSettingValueDto>,
-    ): Promise<boolean> {
-        try {
-            const assetCategoryCodes = generalSetting.values.map(
-                (s: GeneralSettingValueDto) => s?.code,
-            );
-
-            const assetCount = await this.dbManager.count(Asset, {
-                where: {
-                    category: Not(In([...assetCategoryCodes])),
-                },
-            });
-
-            return assetCount === 0;
-        } catch (error) {
-            throw error;
-        }
-    }
-
     async mapingInUseForSettingData(
         setting: GeneralSettings,
         key: SettingKey,
@@ -136,17 +110,7 @@ export class SettingService {
                     },
                 );
             } else if (key === SettingKey.APPLIED_POSITION) {
-                const inUseAppliedPositions =
-                    await this.recruitmentService.getInUseAppliedPosition();
                 const mapInUseAppliedPositions: Record<string, boolean> = {};
-                reduce(
-                    inUseAppliedPositions || [],
-                    function (obj: Record<string, boolean>, code) {
-                        mapInUseAppliedPositions[code] = true;
-                        return obj;
-                    },
-                    {},
-                );
                 setting.values = setting.values.map(
                     (item: GeneralSettingValueDto) => {
                         return {
@@ -156,17 +120,7 @@ export class SettingService {
                     },
                 );
             } else if (key === SettingKey.ASSET_CATEGORY) {
-                const inUseAssetCategories =
-                    await this.assetService.getInUseAssetCategory();
                 const mapInUseAssetCategories: Record<string, boolean> = {};
-                reduce(
-                    inUseAssetCategories || [],
-                    function (obj: Record<string, boolean>, code) {
-                        mapInUseAssetCategories[code] = true;
-                        return obj;
-                    },
-                    {},
-                );
                 setting.values = setting.values.map(
                     (item: GeneralSettingValueDto) => {
                         return {

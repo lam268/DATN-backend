@@ -11,9 +11,6 @@ import { HolidayService } from '../setting/services/holiday.service';
 import { ContractTypeService } from '../setting/services/contract-type.service';
 import { UserTimekeepingHistoryService } from './services/userTimekeepingHistory.service';
 import { CreateUserTimekeepingHistoryJob } from './cron-job/createUserTimekeepingHistory.job';
-import { ContractService } from '../contract/services/contract.service';
-import { DownloadFingerScannerDataJob } from './cron-job/downloadFingerScannerData.job';
-import { DeleteFingerScannerDataFilesJob } from './cron-job/deleteFingerScannerDataFiles.job';
 @Module({
     imports: [ConfigService],
     controllers: [TimekeepingController],
@@ -28,9 +25,6 @@ import { DeleteFingerScannerDataFilesJob } from './cron-job/deleteFingerScannerD
         ContractTypeService,
         UserTimekeepingHistoryService,
         CreateUserTimekeepingHistoryJob,
-        ContractService,
-        DownloadFingerScannerDataJob,
-        DeleteFingerScannerDataFilesJob,
     ],
 })
 export class TimekeepingModule {}

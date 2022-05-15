@@ -10,7 +10,6 @@ import 'winston-daily-rotate-file';
 import moment from 'moment-timezone';
 import { ConfigService } from '@nestjs/config';
 import { createWinstonLogger } from 'src/common/services/winston.service';
-import { MODULE_NAME } from 'src/modules/recruitment/recruitment.constant';
 import { Cron } from '@nestjs/schedule';
 import { Timekeeping } from '../entity/timekeeping.entity';
 import { EntityManager, In } from 'typeorm';
@@ -18,12 +17,6 @@ import { User } from 'src/modules/user/entity/user.entity';
 import { userDetailAttributes, dat } from '../timekeeping.constant';
 import { TimekeepingService } from '../services/timekeeping.service';
 import { FingerScannerData } from '../entity/finger-scanner-data.entity';
-
-dotenv.config();
-const {
-    CRON_JOB_TIME_KEEPING_READ_FINGER_SCANNER_DATA,
-    FINGER_SCANNER_DOWNLOAD_PATH,
-} = process.env;
 
 interface IUserFingerData {
     email: string;
@@ -48,10 +41,6 @@ export class ReadFingerScannerDataJob {
     ) {
         // eslint-disable-next-line prettier/prettier
     }
-    private readonly logger = createWinstonLogger(
-        `${MODULE_NAME}-read-finger-scanner-job`,
-        this.configService,
-    );
 
     async mapUserIds(
         data: IFingerDataScanner[],
@@ -175,37 +164,6 @@ export class ReadFingerScannerDataJob {
                 .insert(timekeepings);
         } catch (error) {
             throw error;
-        }
-    }
-
-    @Cron(CRON_JOB_TIME_KEEPING_READ_FINGER_SCANNER_DATA, {
-        timeZone: TIMEZONE_NAME_DEFAULT,
-    })
-    async readFingerScanner() {
-        try {
-            this.logger.info('start readFingerScanner at', new Date());
-
-            const unprocessedDates =
-                await this.timekeepingService.getUnprocessedDates();
-
-            for (let i = 0; i < unprocessedDates.length; ++i) {
-                const filePath = `${FINGER_SCANNER_DOWNLOAD_PATH}/${unprocessedDates[i]}.${dat}`;
-                if (existsSync(filePath)) {
-                    const userScannedData =
-                        this.parseFingerScannerDataFile(filePath);
-                    if (!userScannedData) {
-                        return;
-                    }
-
-                    const userData = await this.mapUserIds(userScannedData);
-                    await Promise.all([
-                        this.importFingerData(userData),
-                        this.processFingerData(userData),
-                    ]);
-                }
-            }
-        } catch (error) {
-            this.logger.error('Error in readFingerScanner: ', error);
         }
     }
 }
