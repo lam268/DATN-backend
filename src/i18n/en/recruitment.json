@@ -1,0 +1,79 @@
+{
+    "fields": {
+        "email": "Email",
+        "fullName": "Full name",
+        "phoneNumber": "Phone number",
+        "birthday": "Birthday",
+        "gender": "Gender",
+        "cvLink": "CV",
+        "appliedPosition": "Applied position",
+        "level": "Level",
+        "resource": "Resource",
+        "candidateInterview": {
+            "candidateId": "Id of candidate",
+            "status": "Status",
+            "dateTime": "Date time",
+            "note": "Note",
+            "result": "Result",
+            "progress": "Progress"
+        },
+        "candidateEmail": {
+            "candidateId": "Id of candidate",
+            "status": "Status",
+            "dateTime": "Date time",
+            "note": "Note",
+            "type": "Type",
+            "template": "Template"
+        },
+        "status": "Status",
+        "note": "Note",
+        "avatarId": "Avatar Id"
+    },
+    "common": {
+        "error": {
+            "email.exist": "Email already exists",
+            "candidate.notFound": "Candidate does not exist",
+            "candidateInterview.notFound": "This interview appointment did not exist",
+            "candidateEmail.notFound": "This email delivery history did not exist",
+            "status.invalid": "Rejected or canceled candidate can not add schedule",
+            "file.exist": "File id does not exist",
+            "candidate.interview.exceed": "Candidate can interview max 2 times",
+            "candidate.status.invalid": "Not allow update this status",
+            "candidate.interview.timeExceed": "The time update schedule is expired",
+            "sendMail.error": "Failed to send mail",
+            "emailTemplate.error": "Failed to load email templates",
+            "sendEmail.statusInvalid": "Can not send email because candidate status is invalid",
+            "expiredReplyDate.greater.now": "Expired reply date must be more than now",
+            "interviewAt.greater.now": "Expired reply date must be more than now",
+            "startWorkingDate.greater.now": "Expired reply date must be more than now"
+        }
+    },
+    "delete.success": "Delete candidate successfully",
+    "getCandidates": {
+        "error": {
+            "interviewRange": {
+                "length": "The length of the interview range array consists of only 2 elements",
+                "format": "For each element, the format must be YYYY-MM-DD_HH:mm:ss"
+            },
+            "sendEmailRange": {
+                "length": "The length of the send email range array consists of only 2 elements",
+                "format": "For each element, the format must be YYYY-MM-DD_HH:mm:ss"
+            }
+        }
+    },
+    "deleteInterview.success": "Delete interview successfully",
+    "deleteSendEmail.success": "Delete send email history successfully",
+    "template": {
+        "interviewLetter": "Interview letter",
+        "rejectCandidateLetter": "Reject candidate letter",
+        "jobOfferLetter": "Job offer letter",
+        "interviewResultsLetter": "Interview results letter"
+    },
+    "sendEmail": {
+        "gender": {
+            "male": "anh",
+            "female": "chị",
+            "other": "anh/chị"
+        }
+    }
+}

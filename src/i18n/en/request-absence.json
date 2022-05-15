@@ -1,0 +1,34 @@
+{
+    "fields": {
+        "email": "Email",
+        "fullName": "Full name",
+        "startAt": "Start At",
+        "endAt": "End At",
+        "reason": "Reason",
+        "page": "Page",
+        "limit": "Limit",
+        "keyword": "Keyword",
+        "orderBy": "Order By",
+        "orderDirection": "Order Direction",
+        "userId": "User Id",
+        "status": "Status"
+    },
+    "common": {
+        "error": {
+            "timeKeeping": "Can't create time keeping at request absence time!",
+            "userIdsNotExist": "UserIds list contains non-existing id",
+            "emailExist": "Email already exists",
+            "outOff": "Outside working hours",
+            "notFound": "Request absence does not exist",
+            "existRequest": "Request already exists. Please, check the time again",
+            "future": "Can't create time keeping at future",
+            "invalid": "Invalid request absence, please contact administrator",
+            "notActiveUser": "Employee is not active",
+            "insufficientPermission": "You don't have sufficient permission to perform this action"
+        },
+        "delete": "Delete request absence successfully",
+        "permission": {
+            "error": "Not have enough permissions to access"
+        }
+    }
+}

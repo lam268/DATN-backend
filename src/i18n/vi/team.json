@@ -1,0 +1,15 @@
+{
+    "fields": {
+        "name": "Tên nhóm",
+        "desc": "Mô tả",
+        "teamId": "TeamId",
+        "order": "Thứ tự",
+        "userRole": "Vị trí",
+        "userId": "UserId"
+    },
+    "message": {
+        "deleteSuccess": "Xoá nhóm thành công",
+        "teamNotFound": "Nhóm không tồn tại",
+        "nameExist": "Tên nhóm đã tồn tại"
+      }
+}

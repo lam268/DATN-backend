@@ -1,0 +1,36 @@
+{
+    "fields": {
+        "email": "Email",
+        "fullName": "Tên",
+        "startAt": "Ngày bắt đầu",
+        "endAt": "Ngày kết thúc",
+        "reason": "Lý do",
+        "page": "Trang",
+        "limit": "Giới hạn",
+        "keyword": "Từ khóa",
+        "orderBy": "Sắp xếp theo",
+        "orderDirection": "Hướng sắp xếp",
+        "userId": "Mã người dùng",
+        "status": "Trạng thái"
+    },
+    "common": {
+        "error": {
+            "notFound": "Chấm công không tồn tại",
+            "insufficientPermission": "Bạn không có quyền để thực hiện hành động này",
+            "doNotHaveDataForExcelExport": "Không tìm thấy data để xuất ra Excel",
+            "startDate.future": "Bạn chỉ có thể tạo chấm công trong tương lai",
+            "timekeeping": "Không thể tạo chấm công trong thời gian nghỉ",
+            "inactiveUser": "Nhân viên không hoạt động"
+        }
+    },
+    "message": {
+        "deleteSuccess": "Xoá chấm công thành công"
+    },
+    "exportData": {
+        "requestBody": {
+            "month": "Tháng",
+            "year": "Năm",
+            "userIds": "Ids người dùng"
+        }
+    }
+}

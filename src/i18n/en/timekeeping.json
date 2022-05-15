@@ -1,0 +1,36 @@
+{
+    "fields": {
+        "email": "Email",
+        "fullName": "Full name",
+        "startAt": "Start At",
+        "endAt": "End At",
+        "reason": "Reason",
+        "page": "Page",
+        "limit": "Limit",
+        "keyword": "Keyword",
+        "orderBy": "Order By",
+        "orderDirection": "Order Direction",
+        "userId": "User Id",
+        "status": "Status"
+    },
+    "common": {
+        "error": {
+            "notFound": "Time keeping does not exist",
+            "insufficientPermission": "You don't have sufficient permission to perform this action",
+            "doNotHaveDataForExcelExport": "Can't get data for excel export",
+            "startDate.future": "You can only create timekeeping in the future",
+            "timekeeping": "Can't create timekeeping in absence time",
+            "notActiveUser": "Employee is not active"
+        }
+    },
+    "message": {
+        "deleteSuccess": "Timekeeping has been deleted"
+    },
+    "exportData": {
+        "requestBody": {
+            "month": "Month",
+            "year": "Year",
+            "userIds": "User Ids"
+        }
+    }
+}

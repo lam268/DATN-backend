@@ -1,0 +1,28 @@
+{
+    "fields": {
+        "userId": "userId",
+        "contractType": "Loại hợp đồng",
+        "status": "Tình trạng hợp đồng",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "url": "URL"
+    },
+    "common": {
+        "error": {
+            "contract.notFound": "Hợp đồng không tồn tại",
+            "startDate.conflict": "Ngày bắt đầu phải sau ngày kết thúc của hợp đồng trước",
+            "endDate.conflict": "Ngày kết thúc phải nằm ngoài hợp đồng khác",
+            "endDate.input": "Ngày kết thúc không được bé hơn ngày bắt đầu của hợp đồng",
+            "endDate.today": "Ngày kết thúc không được bé hơn hôm nay",
+            "active.conflict": "Không thể có hai hợp đồng cùng có hiệu lực",
+            "user.notFound": "Người dùng không tồn tại",
+            "contractType.notFound": "Loại hợp đồng không tồn tại",
+            "contract.cantUpdate": "Không thể chỉnh sửa hợp đồng này",
+            "contract.cantDelete": "Không thể xóa hợp đồng này",
+            "notActiveUser": "Nhân viên không hoạt động",
+            "endDate.lessThanStartDate": "Ngày kết thúc không thể sớm hơn ngày bắt đầu",
+            "endDate.moreThanEndDate": "Ngày kết thúc không thể lớn hơn ngày kết thúc của hợp đồng"
+        }
+    },
+    "delete.success": "Xoá hợp đồng thành công"
+}

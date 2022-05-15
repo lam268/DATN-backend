@@ -1,0 +1,19 @@
+{
+  "fields": {
+    "title": "Title",
+    "desc": "Description",
+    "status": "Status",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "img": "Image link",
+    "userQuantity": "User Quantity",
+    "budget": "Budget",
+    "budgetFrom": "Budget from",
+    "budgetTo": "Budge to"
+  },
+
+  "message": {
+    "deleteSuccess": "Event has been deleted",
+    "eventNotFound": "Event does not exist"
+  }
+}

@@ -1,0 +1,34 @@
+{
+    "fields": {
+        "email": "Email",
+        "fullName": "Tên",
+        "startAt": "Ngày bắt đầu",
+        "endAt": "Ngày kết thúc",
+        "reason": "Lý do",
+        "page": "Trang",
+        "limit": "Giới hạn",
+        "keyword": "Từ khóa",
+        "orderBy": "Sắp xếp theo",
+        "orderDirection": "Hướng sắp xếp",
+        "userId": "Mã người dùng",
+        "status": "Trạng thái"
+    },
+    "common": {
+        "error": {
+            "timeKeeping": "Không thể tạo chấm công trong thời gian nghỉ!",
+            "userIdsNotExist": "Danh sách người dùng có chứa người dùng không tồn tại",
+            "emailExist": "Email đã tồn tại trên hệ thống",
+            "outOff": "Ngoài giờ làm việc",
+            "notFound": "Không tìm thấy yêu cầu xin nghỉ",
+            "existRequest": "Yêu cầu đã tồn tại. Kiểm tra lại thời gian",
+            "future": "Không thể tạo chấm công trong tương lai",
+            "invalid": "Yêu cầu xin nghỉ không hợp lệ, vui lòng liên hệ quản trị viên để thực hiện",
+            "insufficientPermission": "Bạn không có quyền để thực hiện hành động này",
+            "notActiveUser": "Nhân viên không hoạt động"
+        },
+        "delete": "Xóa yêu cầu xin nghỉ thành công",
+        "permission": {
+            "error": "Không có quyền truy cập"
+        }
+    }
+}

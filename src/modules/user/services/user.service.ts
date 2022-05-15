@@ -1,0 +1,339 @@
+import {
+    DEFAULT_FIRST_PAGE,
+    DEFAULT_LIMIT_FOR_PAGINATION,
+    DEFAULT_ORDER_BY,
+    DEFAULT_ORDER_DIRECTION,
+    TYPE_ORM_ORDER_DIRECTION,
+} from '../../../common/constants';
+import {
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    Optional,
+} from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { Request } from 'express';
+import * as bcrypt from 'bcrypt';
+import { EntityManager, In, Like, Brackets } from 'typeorm';
+
+import { File } from 'src/modules/file/entity/file.entity';
+import { User } from 'src/modules/user/entity/user.entity';
+import { CreateUserDto } from '../dto/requests/create-user.dto';
+import { userListAttributes, UserStatus } from '../user.constant';
+import { UserListQueryStringDto } from '../dto/requests/list-user.dto';
+import { UserList } from '../dto/response/api-response.dto';
+import { UserResponseDto } from '../dto/response/user-response.dto';
+import { UpdateUserDto } from '../dto/requests/update-user.dto';
+import { UserStatusDto } from '../dto/requests/common-user.dto';
+import xlsx from 'xlsx';
+import { Timekeeping } from '../../timekeeping/entity/timekeeping.entity';
+import { IUpdateUserFinger } from 'src/modules/timekeeping/timekeeping.interface';
+import { FingerScannerData } from 'src/modules/timekeeping/entity/finger-scanner-data.entity';
+import { makeFileUrl } from 'src/common/helpers/common.function';
+import { RequestAbsence } from 'src/modules/request-absence/entity/request-absences.entity';
+import { TeamMember } from 'src/modules/team/entity/team-users.entity';
+
+@Injectable()
+export class UserService {
+    constructor(
+        @Optional() @Inject(REQUEST) private readonly request: Request,
+        @InjectEntityManager()
+        private readonly dbManager: EntityManager,
+    ) {}
+
+    generateQueryBuilder(
+        queryBuilder,
+        { keyword, genders, statuses, roles, provinces, positions },
+    ) {
+        queryBuilder.andWhere({
+            isSuperAdmin: false,
+        });
+        if (keyword) {
+            const likeKeyword = `%${keyword}%`;
+            queryBuilder.andWhere(
+                new Brackets((qb) => {
+                    qb.where([
+                        {
+                            fullName: Like(likeKeyword),
+                        },
+                        {
+                            email: Like(likeKeyword),
+                        },
+                        {
+                            address: Like(likeKeyword),
+                        },
+                        {
+                            hometownAddress: Like(likeKeyword),
+                        },
+                    ]);
+                }),
+            );
+        }
+        if (statuses && statuses.length > 0) {
+            queryBuilder.andWhere({
+                status: In(statuses),
+            });
+        }
+        if (genders && genders.length > 0) {
+            queryBuilder.andWhere({
+                gender: In(genders),
+            });
+        }
+        if (roles && roles.length > 0) {
+            queryBuilder.andWhere({
+                roleId: In(roles),
+            });
+        }
+        if (provinces && provinces.length > 0) {
+            queryBuilder.andWhere({
+                provinceId: In(provinces),
+            });
+        }
+        if (positions && positions.length > 0) {
+            queryBuilder.andWhere({
+                position: In(positions),
+            });
+        }
+    }
+
+    async getUsers(query: UserListQueryStringDto): Promise<UserList> {
+        try {
+            const {
+                page = DEFAULT_FIRST_PAGE,
+                limit = DEFAULT_LIMIT_FOR_PAGINATION,
+                keyword = '',
+                orderBy = DEFAULT_ORDER_BY,
+                orderDirection = DEFAULT_ORDER_DIRECTION,
+                genders = [],
+                statuses = [],
+                roles = [],
+                provinces = [],
+                positions = [],
+            } = query;
+
+            const _queryBuilder = this.dbManager
+                .createQueryBuilder(User, 'users')
+                .leftJoinAndMapOne(
+                    'users.avatar',
+                    File,
+                    'file',
+                    'file.id = users.avatarId',
+                )
+                .where((queryBuilder) => {
+                    this.generateQueryBuilder(queryBuilder, {
+                        keyword,
+                        roles,
+                        statuses,
+                        genders,
+                        provinces,
+                        positions,
+                    });
+                })
+                .select(userListAttributes);
+            if (orderBy) {
+                _queryBuilder.orderBy(
+                    `users.${orderBy}`,
+                    orderDirection.toUpperCase() as TYPE_ORM_ORDER_DIRECTION,
+                );
+            }
+            if (limit && page)
+                _queryBuilder.take(limit).skip((page - 1) * limit);
+            const [items, totalItems] = await _queryBuilder.getManyAndCount();
+            return {
+                items: items.map((item) => {
+                    return {
+                        ...item,
+                        avatar: item.avatar
+                            ? {
+                                  ...item.avatar,
+                                  url: makeFileUrl(item.avatar.fileName),
+                              }
+                            : null,
+                    };
+                }),
+                totalItems: totalItems,
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getInUseUserPosition(): Promise<string[]> {
+        try {
+            const users = await this.dbManager
+                .getRepository(User)
+                .createQueryBuilder('users')
+                .select('position')
+                .distinct(true)
+                .getRawMany();
+            const userPositions = (users || []).map((user) => user.position);
+            return userPositions;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getUserById(id: number): Promise<UserResponseDto> {
+        try {
+            const user = await this.dbManager.findOne(User, {
+                relations: ['role', 'province'],
+                where: { id },
+            });
+            if (user?.avatarId) {
+                const file = await this.dbManager.findOne(File, {
+                    where: { id: user.avatarId },
+                });
+                return {
+                    ...user,
+                    avatar: {
+                        id: user.avatarId.toString(),
+                        avatarName: file.fileName,
+                        url: file.fileName ? makeFileUrl(file.fileName) : null,
+                    },
+                };
+            }
+            return user;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async createUser(user: CreateUserDto): Promise<UserResponseDto> {
+        try {
+            const newUser = {
+                ...user,
+                status: UserStatus.WAITING_FOR_APPROVAL,
+                email: user.email.toLocaleLowerCase(),
+            };
+            if (user?.password) {
+                newUser.password = bcrypt.hashSync(
+                    newUser.password,
+                    bcrypt.genSaltSync(10),
+                );
+            }
+            const insertedUser = await this.dbManager
+                .getRepository(User)
+                .insert(newUser);
+            const userId = insertedUser?.identifiers[0]?.id;
+            if (userId) {
+                const userDetail = await this.getUserById(userId);
+                return userDetail;
+            }
+            throw new InternalServerErrorException();
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateUser(
+        id: number,
+        user: UpdateUserDto,
+    ): Promise<UserResponseDto> {
+        try {
+            const currentUser = {
+                ...user,
+            };
+
+            await this.dbManager.update(User, id, currentUser);
+
+            const savedUser = await this.getUserById(id);
+
+            return savedUser;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteUser(id: number, deletedBy: number): Promise<void> {
+        try {
+            const timeNow = new Date();
+            await Promise.all([
+                this.dbManager.update(
+                    User,
+                    { id },
+                    {
+                        deletedAt: timeNow,
+                        deletedBy,
+                    },
+                ),
+                this.dbManager.update(
+                    Timekeeping,
+                    { userId: id },
+                    {
+                        deletedAt: timeNow,
+                        deletedBy,
+                    },
+                ),
+                this.dbManager.update(
+                    RequestAbsence,
+                    { userId: id },
+                    {
+                        deletedAt: timeNow,
+                        deletedBy,
+                    },
+                ),
+                this.dbManager.update(
+                    FingerScannerData,
+                    { userId: id },
+                    {
+                        deletedAt: timeNow,
+                        deletedBy,
+                    },
+                ),
+                this.dbManager.update(
+                    TeamMember,
+                    { userId: id },
+                    {
+                        deletedAt: timeNow,
+                        deletedBy,
+                    },
+                ),
+            ]);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateUserStatus(
+        id: number,
+        data: UserStatusDto,
+    ): Promise<UserResponseDto> {
+        try {
+            await this.dbManager.update(User, id, { status: data.status });
+
+            const savedUser = await this.getUserById(id);
+
+            return savedUser;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async uploadFileCSV(file): Promise<void> {
+        try {
+            const workbook = xlsx.read(file?.buffer, { type: 'buffer' });
+            const sheetContent = xlsx.utils.sheet_to_json(
+                workbook.Sheets[workbook.SheetNames[0]],
+            ) as IUpdateUserFinger[];
+            sheetContent.forEach(async (item) => {
+                await this.dbManager.update(User, item.userId, {
+                    fingerId: item?.fingerId,
+                });
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getAllUserIds(): Promise<number[]> {
+        try {
+            const users = await this.dbManager.find(User, {
+                select: ['id'],
+            });
+            return users.map((user) => user.id);
+        } catch (error) {
+            throw error;
+        }
+    }
+}

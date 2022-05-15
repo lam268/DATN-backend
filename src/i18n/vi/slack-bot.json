@@ -1,0 +1,18 @@
+{
+    "default": "Hello World :tada:",
+    "poll": {
+        "created": "Poll mới vừa được tạo"
+    },
+    "absence": {
+        "request": "Hi <@{adminId}>, {user} xin nghỉ từ {startDay} đến {endDay}",
+        "success": "Yêu cầu nghỉ của bạn đã được tạo thành công",
+        "approved": "Yêu cầu nghỉ của bạn đã được chấp nhận",
+        "rejected": "Yêu cầu nghỉ của bạn đã bị từ chối",
+        "form": {
+            "inputWrong": "Thời gian bắt đầu không thể lớn hơn thời gian kết thúc",
+            "inputPast": "Không thể tạo yêu cầu vắng mặt ở quá khứ, hãy liên hệ với quản trị viên để thực hiện việc này",
+            "timeDuplicate": "Đã có yêu cầu nghỉ trong khoảng thời gian này",
+            "timeOutside": "Không thể tạo yêu cầu nghỉ ngoài giờ làm việc"
+        }
+    }
+}

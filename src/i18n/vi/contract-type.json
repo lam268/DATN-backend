@@ -1,0 +1,16 @@
+{
+    "fields": {
+        "name": "Tên loại hợp đồng",
+        "expiredIn": "Số tháng hết hạn",
+        "paidLeaveDays": "Số ngày nghỉ phép hưởng lương",
+        "description": "Mô tả thêm"
+    },
+    "errorMessages": {
+        "nameExisted": "Tên loại hợp đồng đã tồn tại",
+        "itemNotExisted": "Loại hợp đồng không tồn tại",
+        "itemBeingUsed": "Loại hợp đồng này đang được sử dụng"
+    },
+    "successMessages": {
+        "delete": "Xóa loại hợp đồng thành công"
+    }
+}
