@@ -17,6 +17,8 @@
         "start:prod": "node dist/src/main.js",
         "schema:drop": "ts-node ./node_modules/typeorm/cli.js schema:drop -f database/config.ts",
         "drop:migration": "yarn run schema:drop && yarn run migration:run",
+        "wdio": "wdio run wdio.conf.js",
+        "download-file": "sh download.sh $1 $2",
         "postinstall": "husky install"
     },
     "dependencies": {

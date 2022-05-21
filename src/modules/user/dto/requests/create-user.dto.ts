@@ -55,11 +55,11 @@ export const ImportUserSchema = Joi.object().keys({
                     .max(INPUT_PHONE_MAX_LENGTH)
                     .required(),
                 birthday: Joi.date()
-                    .allow(null)
+                    .allow(null, '')
                     .format(DATE_TIME_FORMAT.YYYY_MM_DD_HYPHEN_HH_MM_SS_COLON)
                     .min(INPUT_MIN_DATE)
                     .less('now')
-                    .required(),
+                    .optional(),
                 gender: Joi.string()
                     .allow(null)
                     .valid(...Object.values(UserGender))
@@ -109,7 +109,7 @@ export const ImportUserSchema = Joi.object().keys({
             }),
         )
         .unique('email')
-        .unique('taxCode')
+        .unique('taxCode', { ignoreUndefined: true })
         .unique('bankAccount')
         .unique('citizenId')
         .unique('socialInsurance', { ignoreUndefined: true }),

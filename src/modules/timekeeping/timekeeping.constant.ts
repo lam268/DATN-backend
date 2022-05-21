@@ -37,6 +37,7 @@ export const userTimekeepingAttributes = [
     'user.id',
     'user.avatarId',
     'user.fullName',
+    'user.position',
     'file.fileName',
 ];
 

@@ -4,7 +4,8 @@
         "contractTypeId": "Contract Type Id",
         "status": "Contract Status",
         "startDate": "Date Start",
-        "endDate": "Date End",
+        "stopDate": "Date stop",
+        "endDate": "Date end",
         "url": "URL"
     },
     "common": {
@@ -20,8 +21,8 @@
             "contract.cantUpdate": "Unable to update this contract",
             "contract.cantDelete": "Unable to delete this contract",
             "notActiveUser": "Employee is not active",
-            "endDate.lessThanStartDate": "End date can't be earlier than start date",
-            "endDate.moreThanEndDate": "End date can't be greater than contract end date"
+            "stopDate.lessThanStartDate": "Stop date can't be earlier than start date",
+            "stopDate.moreThanEndDate": "Stop date can't be greater than contract end date"
         }
     },
     "delete.success": "Delete contract successfully"

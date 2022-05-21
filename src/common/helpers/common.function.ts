@@ -3,6 +3,8 @@ import isArray from 'lodash/isArray';
 import isPlainObject from 'lodash/isPlainObject';
 import mapKeys from 'lodash/mapKeys';
 import snakeCase from 'lodash/snakeCase';
+import cloneDeep from 'lodash/cloneDeep';
+import moment from 'moment';
 import {
     actionList,
     permissionList,
@@ -19,6 +21,7 @@ import {
     PermissionActions,
     PermissionResources,
 } from 'src/modules/role/role.constants';
+import { WeekDay } from '../constants';
 
 export function generateHashToken(userId: number): string {
     const random = Math.floor(Math.random() * (10000 - 1000) + 1000);
@@ -45,21 +48,28 @@ export function hasPermission(
 export function makeFileUrl(fileName: string): string {
     return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 }
+
 export function parseToCamelCase(data: any) {
-    let dataString = JSON.stringify(data);
+    const parsedData = cloneDeep(data);
     function parse(item: any) {
         mapKeys(item, function (value, key) {
-            if (isPlainObject(item[key] as any)) {
-                parse(item[key]);
+            const keyInCamelCase = camelCase(key);
+            if (keyInCamelCase !== key) {
+                item[keyInCamelCase] = cloneDeep(item[key]);
+                delete item[key];
             }
-            if (isArray(item[key])) {
-                item[key].forEach((childItem: any) => parse(childItem));
+            if (isPlainObject(item[keyInCamelCase] as any)) {
+                parse(item[keyInCamelCase]);
             }
-            dataString = dataString.replace(key, camelCase(key));
+            if (isArray(item[keyInCamelCase])) {
+                item[keyInCamelCase].forEach((childItem: any) =>
+                    parse(childItem),
+                );
+            }
         });
     }
-    parse(data);
-    return JSON.parse(dataString);
+    parse(parsedData);
+    return parsedData;
 }
 export function parseToSnakeCase(data: any) {
     let dataString = JSON.stringify(data);
@@ -105,4 +115,9 @@ export function appendPermissionToRole(role: Role) {
             id: permission.id,
         } as Permission;
     });
+}
+
+export function isWeekend(date: string | Date): boolean {
+    const day = moment(date).day();
+    return day === WeekDay.SATURDAY || day === WeekDay.SUNDAY;
 }

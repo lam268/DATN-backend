@@ -61,28 +61,6 @@ export class CreateUserTimekeepingHistoryJob {
         this.configService,
     );
 
-    async isNeedToResetPaidLeaveDays() {
-        const previousMonth = moment()
-            .subtract(1, 'month')
-            .tz(TIMEZONE_NAME_DEFAULT)
-            .format(DATE_TIME_FORMAT.YYYY_MM_HYPHEN);
-
-        const yearOfPreviousMonth = moment().subtract(1, 'month').year();
-        const schedule = await this.dbManager.findOne(GeneralSettings, {
-            where: { key: SettingKey.PAID_LEAVE_DAYS_RESET_SCHEDULE },
-        });
-
-        if (schedule && schedule.values?.[yearOfPreviousMonth.toString()]) {
-            if (
-                schedule.values?.[yearOfPreviousMonth.toString()] ===
-                previousMonth
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     calculatePaidLeaveHoursUsed(userTimekeeping: ITimekeepingGroupByDate) {
         let totalAuthorizedLeaveHours = 0;
         forEach(userTimekeeping?.timekeepings, (timekeeping) => {
@@ -125,7 +103,7 @@ export class CreateUserTimekeepingHistoryJob {
                 userTimekeeping?.contractType?.paidLeaveDays *
                     WORKING_HOUR_PER_DAY || 0,
             paidLeaveHoursUsed,
-            paidLeaveHoursLeft: paidLeaveHours - paidLeaveHoursUsed,
+            paidLeaveHoursLeft: paidLeaveHours,
         };
     }
 
@@ -139,26 +117,26 @@ export class CreateUserTimekeepingHistoryJob {
             .tz(TIMEZONE_NAME_DEFAULT)
             .subtract(1, 'month')
             .year();
-        const lastYear = moment()
-            .tz(TIMEZONE_NAME_DEFAULT)
-            .subtract(1, 'year')
-            .year();
-        const thisYear = moment().tz(TIMEZONE_NAME_DEFAULT).year();
 
-        let extraPaidLeaveHours = 0;
-        const recordFromLastYear = await this.dbManager.findOne(
-            UserTimekeepingHistory,
-            {
-                where: {
-                    userId: userTimekeepingHistory.userId,
-                    month: LastMonthOfTheYear,
-                    year: lastYear,
-                },
-            },
-        );
-        const paidLeaveHoursRemainingLastYear =
-            recordFromLastYear?.paidLeaveHoursLeft || 0;
+        let paidLeaveHoursToSubtract = 0;
         if (isResetPaidLeaveHoursDate) {
+            const lastYear = moment()
+                .tz(TIMEZONE_NAME_DEFAULT)
+                .subtract(1, 'year')
+                .year();
+            const thisYear = moment().tz(TIMEZONE_NAME_DEFAULT).year();
+            const recordFromLastYear = await this.dbManager.findOne(
+                UserTimekeepingHistory,
+                {
+                    where: {
+                        userId: userTimekeepingHistory.userId,
+                        month: LastMonthOfTheYear,
+                        year: lastYear,
+                    },
+                },
+            );
+            const paidLeaveHoursRemainingLastYear =
+                recordFromLastYear?.paidLeaveHoursLeft || 0;
             const historiesThisYear = await this.dbManager.find(
                 UserTimekeepingHistory,
                 {
@@ -173,18 +151,19 @@ export class CreateUserTimekeepingHistoryJob {
                 historiesThisYear.reduce((totalHours, history) => {
                     return totalHours + +history.paidLeaveHoursUsed;
                 }, 0) + userTimekeepingHistory.paidLeaveHoursUsed;
-
-            extraPaidLeaveHours = Math.min(
-                0,
-                totalPaidLeaveHoursUsed - paidLeaveHoursRemainingLastYear,
-            );
+            paidLeaveHoursToSubtract =
+                paidLeaveHoursRemainingLastYear - totalPaidLeaveHoursUsed;
         }
+        paidLeaveHoursToSubtract =
+            Math.max(paidLeaveHoursToSubtract, 0) +
+            userTimekeepingHistory.paidLeaveHoursUsed;
+        const paidLeaveHoursLeft =
+            userTimekeepingHistory?.paidLeaveHoursLeft -
+            paidLeaveHoursToSubtract;
 
         return {
             ...userTimekeepingHistory,
-            paidLeaveHoursLeft:
-                extraPaidLeaveHours +
-                userTimekeepingHistory?.paidLeaveHoursLeft,
+            paidLeaveHoursLeft,
             year: yearOfLastMonth,
             month: lastMonth,
         };
@@ -376,6 +355,31 @@ export class CreateUserTimekeepingHistoryJob {
             timekeepings,
             timekeepingHistory,
         };
+    }
+
+    async isNeedToResetPaidLeaveDays() {
+        const previousMonth = moment()
+            .subtract(1, 'month')
+            .tz(TIMEZONE_NAME_DEFAULT)
+            .format(DATE_TIME_FORMAT.YYYY_MM_HYPHEN);
+
+        const yearOfPreviousMonth = moment()
+            .subtract(1, 'month')
+            .tz(TIMEZONE_NAME_DEFAULT)
+            .year();
+        const schedule = await this.dbManager.findOne(GeneralSettings, {
+            where: { key: SettingKey.PAID_LEAVE_DAYS_RESET_SCHEDULE },
+        });
+
+        if (schedule && schedule.values?.[yearOfPreviousMonth.toString()]) {
+            if (
+                schedule.values?.[yearOfPreviousMonth.toString()] ===
+                previousMonth
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Cron(CRON_JOB_CREATING_USER_TIMEKEEPING_HISTORY, {

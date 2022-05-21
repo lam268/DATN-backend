@@ -50,14 +50,10 @@ import {
     PermissionResources,
     PermissionActions,
 } from 'src/modules/role/role.constants';
-import {
-    HttpStatus,
-    TIMEZONE_NAME_DEFAULT,
-    WeekDay,
-} from 'src/common/constants';
+import { HttpStatus, TIMEZONE_NAME_DEFAULT } from 'src/common/constants';
 import { RemoveEmptyQueryPipe } from 'src/common/pipes/remove.empty.query.pipe';
 import { Timekeeping } from './entity/timekeeping.entity';
-import { hasPermission } from 'src/common/helpers/common.function';
+import { hasPermission, isWeekend } from 'src/common/helpers/common.function';
 import { IPermissionResponse } from '../role/role.interface';
 import {
     ExportExcelService,
@@ -75,6 +71,7 @@ import { UserService } from '../user/services/user.service';
 import { UserStatus } from '../user/user.constant';
 import { LastMonthOfTheYear, dat } from './timekeeping.constant';
 import { UserTimekeepingHistoryService } from './services/userTimekeepingHistory.service';
+import { SettingService } from '../setting/services/setting.service';
 
 @Controller('timekeeping')
 @UseGuards(JwtGuard, AuthorizationGuard)
@@ -88,12 +85,10 @@ export class TimekeepingController {
         private readonly databaseService: DatabaseService,
         private readonly userService: UserService,
         private readonly userTimekeepingHistoryService: UserTimekeepingHistoryService,
+        private readonly settingService: SettingService,
     ) {}
 
     @Get('dashboard')
-    @Permissions([
-        `${PermissionResources.TIMEKEEPING}_${PermissionActions.READ}`,
-    ])
     async getTimekeepingDashboard(
         @Request() req,
         @Query(
@@ -122,36 +117,51 @@ export class TimekeepingController {
                     ...workingInfo,
                 });
             });
-
             const userWorkingInfo = {
                 userId: userTimekeeping.id,
                 fullName: userTimekeeping.fullName,
                 position: userTimekeeping.position,
                 timkeepings: userTimekeeping.timekeepings,
-                paidLeaveHours:
-                    +userTimekeeping.timekeepingHistory?.paidLeaveHoursLeft +
-                    userTimekeeping.paidLeaveHourThisMonth,
+                paidLeaveHours: userTimekeeping.paidLeaveHourThisMonth,
             };
 
             const lastYear = moment()
                 .subtract(1, 'year')
                 .tz(TIMEZONE_NAME_DEFAULT)
                 .year();
+            const queryMonth =
+                moment(query.startDate).tz(TIMEZONE_NAME_DEFAULT).month() + 1;
+            const queryYear = moment(query.startDate)
+                .tz(TIMEZONE_NAME_DEFAULT)
+                .year();
 
-            const [holidayList, lastYearTimekeepingHistory] = await Promise.all(
-                [
-                    this.holidayService.getHolidayList({ ...query }),
-                    this.userTimekeepingHistoryService.getLatestTimekeepingHistory(
-                        {
-                            month: LastMonthOfTheYear,
-                            year: lastYear,
-                            userId: req?.loginUser?.id,
-                        },
-                    ),
-                ],
-            );
-            const holidayDateList = holidayList?.items?.map((item) => {
-                return item?.date?.toString();
+            const [
+                holidayList,
+                lastYearTimekeepingHistory,
+                resetPaidLeaveHoursDate,
+                totalPaidLeaveHoursUsedThisYear,
+            ] = await Promise.all([
+                this.holidayService.getHolidayList({ ...query }),
+                this.userTimekeepingHistoryService.getLatestTimekeepingHistory({
+                    month: LastMonthOfTheYear,
+                    year: lastYear,
+                    userId: req?.loginUser?.id,
+                }),
+                this.settingService.getResetPaidLeaveDay(),
+                this.userTimekeepingHistoryService.getTotalPaidLeaveHoursUsed(
+                    req?.loginUser?.id,
+                    queryYear,
+                    queryMonth,
+                ),
+            ]);
+            const holidayDateList = new Map<string, boolean>();
+            holidayList?.items?.forEach((holiday) => {
+                holidayDateList.set(
+                    moment(holiday.date)
+                        .tz(TIMEZONE_NAME_DEFAULT)
+                        .fmDayString(),
+                    true,
+                );
             });
 
             let leaveHoursOfMonth = 0;
@@ -159,55 +169,78 @@ export class TimekeepingController {
             let workingHoursOfMonth = 0;
             let paidLeaveHoursLeft = 0;
             let workingHours = 0;
+            let holidayPaidLeaveHours = 0;
             paidLeaveHoursLeft = userWorkingInfo['paidLeaveHours'];
             forEach(userWorkingInfo.timkeepings, (timekeeping, date) => {
-                const dayNumber = moment(date).day();
-                if (
-                    dayNumber !== WeekDay.SATURDAY &&
-                    dayNumber !== WeekDay.SUNDAY &&
-                    !holidayDateList.includes(date)
-                ) {
-                    if (
-                        moment(date).isBefore(
-                            moment(
-                                moment()
-                                    .tz(TIMEZONE_NAME_DEFAULT)
-                                    .fmDayString(),
-                            ),
-                        )
-                    ) {
-                        leaveHoursOfMonth +=
-                            (timekeeping?.unauthorizedLeaveHours || 0) +
-                            (timekeeping?.authorizedLeaveHours || 0);
-                        authorizedLeaveHoursOfMonth +=
-                            timekeeping?.authorizedLeaveHours || 0;
-                        workingHours += timekeeping?.workingHours || 0;
-                    }
+                if (!isWeekend(date)) {
                     workingHoursOfMonth += WORKING_HOUR_PER_DAY;
                 }
+                if (
+                    moment(date).isSameOrAfter(
+                        moment(
+                            moment().tz(TIMEZONE_NAME_DEFAULT).fmDayString(),
+                        ),
+                    )
+                ) {
+                    return;
+                }
+                if (isWeekend(date)) {
+                    workingHours += timekeeping?.workingHours || 0;
+                    return;
+                }
+                if (holidayDateList.has(date)) {
+                    holidayPaidLeaveHours += WORKING_HOUR_PER_DAY;
+                } else {
+                    leaveHoursOfMonth +=
+                        (timekeeping?.unauthorizedLeaveHours || 0) +
+                        (timekeeping?.authorizedLeaveHours || 0);
+                    authorizedLeaveHoursOfMonth +=
+                        timekeeping?.authorizedLeaveHours || 0;
+                }
+                workingHours += timekeeping?.workingHours || 0;
             });
             const paidLeaveHoursUsed = Math.min(
                 paidLeaveHoursLeft,
                 authorizedLeaveHoursOfMonth,
             );
+            let lastYearRemainingPaidLeaveHours =
+                (lastYearTimekeepingHistory?.paidLeaveHoursLeft || 0) -
+                totalPaidLeaveHoursUsedThisYear;
+            if (
+                moment(query.startDate)
+                    .tz(TIMEZONE_NAME_DEFAULT)
+                    .startOf('month')
+                    .isSameOrAfter(
+                        moment(resetPaidLeaveHoursDate)
+                            .tz(TIMEZONE_NAME_DEFAULT)
+                            .add(1, 'month')
+                            .startOf('month'),
+                    )
+            ) {
+                lastYearRemainingPaidLeaveHours = 0;
+            }
+            if (queryMonth === moment().tz(TIMEZONE_NAME_DEFAULT).month() + 1) {
+                lastYearRemainingPaidLeaveHours -= authorizedLeaveHoursOfMonth;
+            }
             return new SuccessResponse({
-                workingHours: round(workingHours, 2),
+                workingHours: round(workingHours, 1),
                 workingHoursNeeded: workingHoursOfMonth,
-                paidLeaveHoursUsed: round(paidLeaveHoursUsed, 2),
+                authorizedLeaveHoursOfMonth: round(
+                    paidLeaveHoursUsed + holidayPaidLeaveHours,
+                    1,
+                ),
                 unpaidLeaveHours: round(
                     leaveHoursOfMonth - paidLeaveHoursUsed,
-                    2,
-                ),
-                authorizedLeaveHoursOfMonth: round(
-                    authorizedLeaveHoursOfMonth,
-                    2,
+                    1,
                 ),
                 paidLeaveHoursLeft: round(
                     paidLeaveHoursLeft - paidLeaveHoursUsed,
-                    2,
+                    1,
                 ),
-                lastYearRemainingPaidLeaveHours:
-                    lastYearTimekeepingHistory?.paidLeaveHoursLeft || 0,
+                lastYearRemainingPaidLeaveHours: Math.max(
+                    0,
+                    round(lastYearRemainingPaidLeaveHours, 1),
+                ),
             });
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -241,7 +274,23 @@ export class TimekeepingController {
             }
             const { items, totalItems } =
                 await this.timekeepingService.getWorkingData(query);
-            return new SuccessResponse({ items, totalItems });
+            return new SuccessResponse({
+                items: items.map((userTimekeeping) => {
+                    forEach(userTimekeeping.timekeepings, (value, key) => {
+                        const workingInfo = calculateActualWorkingHours({
+                            ...value,
+                        });
+
+                        Object.assign(userTimekeeping.timekeepings[key], {
+                            authorizedLeaveHours:
+                                workingInfo.authorizedLeaveHours,
+                            workingHours: workingInfo.workingHours,
+                        });
+                    });
+                    return userTimekeeping;
+                }),
+                totalItems,
+            });
         } catch (error) {
             throw new InternalServerErrorException(error);
         }
@@ -451,7 +500,7 @@ export class TimekeepingController {
 
     @Post('export')
     @Permissions([
-        `${PermissionResources.TIMEKEEPING}_${PermissionActions.CREATE}`,
+        `${PermissionResources.TIMEKEEPING}_${PermissionActions.READ}`,
     ])
     async exportData(
         @Request() req,
@@ -501,8 +550,14 @@ export class TimekeepingController {
                 startDate,
                 endDate,
             });
-            const holidayDateList = holidayList?.items?.map((item) => {
-                return item?.date?.toString();
+            const holidayDateList = new Map<string, boolean>();
+            holidayList?.items?.forEach((holiday) => {
+                holidayDateList.set(
+                    moment(holiday.date)
+                        .tz(TIMEZONE_NAME_DEFAULT)
+                        .fmDayString(),
+                    true,
+                );
             });
 
             let exportData = [];
@@ -550,7 +605,7 @@ export class TimekeepingController {
             const holidayIndexes = [];
             const weekendIndexes = [];
             Object.keys(excelData[0]).map((item, index) => {
-                if (holidayDateList.includes(item)) {
+                if (holidayDateList.has(moment(item).fmDayString())) {
                     holidayIndexes.push((index + 1).toString());
                 }
                 if (

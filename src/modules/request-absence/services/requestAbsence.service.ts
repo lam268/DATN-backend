@@ -9,7 +9,7 @@ import {
     TYPE_ORM_ORDER_DIRECTION,
     workingTimes,
 } from 'src/common/constants';
-import { Brackets, EntityManager, In } from 'typeorm';
+import { Brackets, EntityManager, In, Not } from 'typeorm';
 import { RequestAbsenceListQueryStringDto } from '../dto/requests/get-request-absences-request.dto';
 import { CreateRequestAbsenceDto } from '../dto/requests/create-request-absence.dto';
 import { RequestAbsenceResponseDto } from '../dto/responses/request-absences-response.dto';
@@ -23,14 +23,16 @@ import {
 import { File } from 'src/modules/file/entity/file.entity';
 import { RequestAbsence } from '../entity/request-absences.entity';
 import { User } from 'src/modules/user/entity/user.entity';
-import { makeFileUrl } from 'src/common/helpers/common.function';
+import { isWeekend, makeFileUrl } from 'src/common/helpers/common.function';
 import { IGetRequestAbsencesByUserIdQueryString } from '../requestAbsence.interface';
+import { HolidayService } from 'src/modules/setting/services/holiday.service';
 
 @Injectable()
 export class RequestAbsenceService {
     constructor(
         @InjectEntityManager()
         private readonly dbManager: EntityManager,
+        private readonly holidayService: HolidayService,
     ) {}
 
     async getRequestAbsences(query: RequestAbsenceListQueryStringDto) {
@@ -258,15 +260,12 @@ export class RequestAbsenceService {
                                 );
                         }),
                     );
-                    queryBuilder.andWhere(
-                        new Brackets((qb) => {
-                            qb.where([
-                                {
-                                    userId,
-                                },
-                            ]);
-                        }),
-                    );
+                    queryBuilder.andWhere({
+                        userId,
+                    });
+                    queryBuilder.andWhere({
+                        status: Not(RequestAbsenceStatus.REJECTED),
+                    });
                     if (requestAbsenceId) {
                         queryBuilder.andWhere('requestAbsence.id != :id', {
                             id: requestAbsenceId,
@@ -351,6 +350,17 @@ export class RequestAbsenceService {
         query: IGetRequestAbsencesByUserIdQueryString,
     ) {
         const { userId, startDate, endDate } = query;
+        const holidays = await this.holidayService.getHolidayList({
+            startDate,
+            endDate,
+        });
+        const holidayDates = new Map<string, boolean>();
+        holidays.items.forEach((holiday) => {
+            holidayDates.set(
+                moment(holiday.date).tz(TIMEZONE_NAME_DEFAULT).fmDayString(),
+                true,
+            );
+        });
         try {
             const requestAbsences = await this.dbManager.find(RequestAbsence, {
                 where: (queryBuilder) => {
@@ -390,6 +400,12 @@ export class RequestAbsenceService {
                             .tz(TIMEZONE_NAME_DEFAULT)
                             .add(i, 'd')
                             .fmDayString();
+                        if (
+                            isWeekend(currentDay) ||
+                            holidayDates.has(currentDay)
+                        ) {
+                            continue;
+                        }
                         let startAt!: string;
                         let endAt!: string;
                         if (currentDay === requestAbsenceStartAt) {

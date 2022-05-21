@@ -11,6 +11,8 @@ import {
 import { SettingKey, settingListAtttributes } from '../setting.constant';
 import { UserService } from 'src/modules/user/services/user.service';
 import reduce from 'lodash/reduce';
+import moment from 'moment-timezone';
+import { TIMEZONE_NAME_DEFAULT } from 'src/common/constants';
 
 @Injectable()
 export class SettingService {
@@ -109,29 +111,18 @@ export class SettingService {
                         };
                     },
                 );
-            } else if (key === SettingKey.APPLIED_POSITION) {
-                const mapInUseAppliedPositions: Record<string, boolean> = {};
-                setting.values = setting.values.map(
-                    (item: GeneralSettingValueDto) => {
-                        return {
-                            ...item,
-                            inUse: !!mapInUseAppliedPositions[item.code],
-                        };
-                    },
-                );
-            } else if (key === SettingKey.ASSET_CATEGORY) {
-                const mapInUseAssetCategories: Record<string, boolean> = {};
-                setting.values = setting.values.map(
-                    (item: GeneralSettingValueDto) => {
-                        return {
-                            ...item,
-                            inUse: !!mapInUseAssetCategories[item.code],
-                        };
-                    },
-                );
             }
         } catch (error) {
             throw error;
         }
+    }
+
+    async getResetPaidLeaveDay() {
+        const currentYear = moment().tz(TIMEZONE_NAME_DEFAULT).year();
+        const schedule = await this.dbManager.findOne(GeneralSettings, {
+            where: { key: SettingKey.PAID_LEAVE_DAYS_RESET_SCHEDULE },
+        });
+
+        return schedule.values?.[currentYear.toString()];
     }
 }

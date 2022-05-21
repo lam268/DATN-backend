@@ -1,5 +1,8 @@
 export const SLACK_URL = process.env.SLACK_URL;
-
+export enum SLACK_RESPONSE_ACTIONS {
+    CLEAR = 'clear',
+    ERRORS = 'errors',
+}
 export const PAYLOAD_TYPE = {
     APP_MENTION: 'app_mention',
     SHORTCUT: 'shortcut',

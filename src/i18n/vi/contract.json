@@ -4,7 +4,8 @@
         "contractType": "Loại hợp đồng",
         "status": "Tình trạng hợp đồng",
         "startDate": "Ngày bắt đầu",
-        "endDate": "Ngày kết thúc",
+        "endDate": "Ngày hết hạn",
+        "stopDate": "Ngày kết thúc",
         "url": "URL"
     },
     "common": {
@@ -20,8 +21,8 @@
             "contract.cantUpdate": "Không thể chỉnh sửa hợp đồng này",
             "contract.cantDelete": "Không thể xóa hợp đồng này",
             "notActiveUser": "Nhân viên không hoạt động",
-            "endDate.lessThanStartDate": "Ngày kết thúc không thể sớm hơn ngày bắt đầu",
-            "endDate.moreThanEndDate": "Ngày kết thúc không thể lớn hơn ngày kết thúc của hợp đồng"
+            "stopDate.lessThanStartDate": "Ngày kết thúc không thể sớm hơn ngày bắt đầu",
+            "stopDate.moreThanEndDate": "Ngày kết thúc không thể lớn hơn ngày hết hạn của hợp đồng"
         }
     },
     "delete.success": "Xoá hợp đồng thành công"

@@ -55,6 +55,8 @@ import { RequestAbsenceService } from 'src/modules/request-absence/services/requ
 import { UserTimekeepingHistoryService } from './userTimekeepingHistory.service';
 import { makeFileUrl } from 'src/common/helpers/common.function';
 import { Moment } from 'moment';
+import { ContractService } from 'src/modules/contract/services/contract.service';
+import { Contract } from 'src/modules/contract/entity/contract.entity';
 
 @Injectable()
 export class TimekeepingService {
@@ -63,6 +65,7 @@ export class TimekeepingService {
         @Inject(forwardRef(() => UserService))
         private readonly dbManager: EntityManager,
         private readonly requestAbsenceService: RequestAbsenceService,
+        private readonly contractService: ContractService,
         private readonly userTimekeepingHistoryService: UserTimekeepingHistoryService,
     ) {}
 
@@ -155,6 +158,7 @@ export class TimekeepingService {
                 users.map(async (user) => {
                     const [
                         timekeepings,
+                        activeContract,
                         requestAbsences,
                         latestTimekeepingHistory,
                     ] = await Promise.all([
@@ -163,6 +167,7 @@ export class TimekeepingService {
                             endDate,
                             userId: user.id,
                         }),
+                        this.contractService.getActiveContractByUserId(user.id),
                         this.requestAbsenceService.getRequestAbsencesByUserId({
                             startDate,
                             endDate,
@@ -176,8 +181,10 @@ export class TimekeepingService {
                             },
                         ),
                     ]);
+
                     return parseUserData(
                         user,
+                        activeContract,
                         timekeepings,
                         requestAbsences,
                         latestTimekeepingHistory,
@@ -734,7 +741,8 @@ export function parseUserData(
         ...user,
         avatarUrl: user.avatar ? makeFileUrl(user.avatar.fileName) : null,
         paidLeaveHourThisMonth:
-            contract?.contractType?.paidLeaveDays * WORKING_HOUR_PER_DAY,
+            contract?.contractType?.paidLeaveDays * WORKING_HOUR_PER_DAY +
+            (+timekeepingHistory?.paidLeaveHoursLeft || 0),
         timekeepings: timekeepingResult,
         timekeepingHistory,
     };

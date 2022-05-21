@@ -10,6 +10,7 @@ import { AppController } from './app.controller';
 import { RequestAbsenceModule } from './modules/request-absence/requestAbsence.module';
 import { TimekeepingModule } from './modules/timekeeping/timekeeping.module';
 import { RoleModule } from './modules/role/role.module';
+import { ContractModule } from './modules/contract/contract.module';
 import { FileModule } from './modules/file/file.module';
 import { BotModule } from './modules/slack-bot/bot.module';
 import { SetttingModule } from './modules/setting/setting.module';
@@ -39,6 +40,7 @@ import path from 'path';
         RequestAbsenceModule,
         TimekeepingModule,
         RoleModule,
+        ContractModule,
         FileModule,
         BotModule,
         SetttingModule,

@@ -9,6 +9,8 @@ import { User } from 'src/modules/user/entity/user.entity';
 import { UserService } from 'src/modules/user/services/user.service';
 import { EntityManager, In } from 'typeorm';
 import { bool } from 'aws-sdk/clients/signer';
+import round from 'lodash/round';
+import moment from 'moment';
 import {
     DAYS_IN_WEEK_OF_EXCEL_TABLE,
     TIME_KEEPING_EXCEL_DATA_SIGN,
@@ -84,7 +86,7 @@ export async function getTimeKeepingDataHeader(
     ws: ExcelJS.Worksheet,
     excelData: any[],
     daysInMonth: number,
-    holidayDateList: string[],
+    holidayDateList: Map<string, boolean>,
     weekendIndexes: string[],
 ) {
     // table header
@@ -94,7 +96,7 @@ export async function getTimeKeepingDataHeader(
     const unpaidLeaveHoursOfMonthCol = daysInMonth + 6;
     const workingHoursOfMonthCol = daysInMonth + 7;
     const keysByDay = Object.keys(excelData[0]).map((item, index) => {
-        if (holidayDateList.includes(item)) {
+        if (holidayDateList.has(moment(item).fmDayString())) {
             holidayIndexes.push(index + 1);
         }
         return getDayString(new Date(item).getDay());
@@ -201,7 +203,7 @@ export async function getTimeKeepingDataTable(
     ws: ExcelJS.Worksheet,
     excelData: any[],
     daysInMonth: number,
-    holidayDateList: string[],
+    holidayDateList: Map<string, boolean>,
     holidayIndexes: string[],
     weekendIndexes: string[],
 ) {
@@ -221,7 +223,7 @@ export async function getTimeKeepingDataTable(
                         DAYS_IN_WEEK_OF_EXCEL_TABLE.SATURDAY ||
                     getDayString(new Date(property).getDay()) ===
                         DAYS_IN_WEEK_OF_EXCEL_TABLE.SUNDAY ||
-                    holidayDateList.includes(property)
+                    holidayDateList.has(moment(property).fmDayString())
                 ) {
                     rowData[property] = '';
                 } else {
@@ -261,7 +263,10 @@ export async function getTimeKeepingDataTable(
                         }
                     }
                 } else {
-                    rowData[property] = rowData[property]?.workingHours;
+                    rowData[property] = round(
+                        rowData[property]?.workingHours,
+                        1,
+                    );
                 }
             }
             // set value = STT if column is 'userId'
@@ -276,6 +281,18 @@ export async function getTimeKeepingDataTable(
             leaveHoursOfMonth - paidLeaveHoursOfMonth;
         rowData.workingHoursOfMonth = workingHoursOfMonth;
         delete rowData.paidLeaveHours;
+        rowData.actualWorkingHoursOfMonth = round(
+            +rowData.actualWorkingHoursOfMonth,
+            1,
+        );
+        rowData.paidLeaveHoursOfMonth = round(
+            +rowData.paidLeaveHoursOfMonth,
+            1,
+        );
+        rowData.unpaidLeaveHoursOfMonth = round(
+            +rowData.unpaidLeaveHoursOfMonth,
+            1,
+        );
         const dataTableRows = ws.addRow(Object.values(rowData));
         dataTableRows.height = 35;
         dataTableRows.eachCell({ includeEmpty: true }, (cell) => {
@@ -325,7 +342,7 @@ export async function getTimeKeepingData(
     ws: ExcelJS.Worksheet,
     excelData: any[],
     daysInMonth: number,
-    holidayDateList: string[],
+    holidayDateList: Map<string, boolean>,
     holidayIndexes: string[],
     weekendIndexes: string[],
 ) {

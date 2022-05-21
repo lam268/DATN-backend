@@ -89,23 +89,6 @@ export class SettingController {
                         },
                     ]);
                 }
-            } else if (data.key == SettingKey.ASSET_CATEGORY) {
-                // check if the new asset category is valid
-                const isValid = await this.settingService.validateAssetCategory(
-                    data,
-                );
-                if (!isValid) {
-                    const message = await this.i18n.t(
-                        'asset.message.categoryInUse',
-                    );
-                    return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
-                        {
-                            key: 'values',
-                            errorCode: HttpStatus.ITEM_IS_USING,
-                            message: message,
-                        },
-                    ]);
-                }
             } else if (data.key == SettingKey.PAID_LEAVE_DAYS_RESET_SCHEDULE) {
                 const paidLeaveDaysScheduleObject = {};
                 data.values.map((item) => {

@@ -19,14 +19,23 @@ import { RequestAbsenceService } from '../../request-absence/services/requestAbs
 import { EntityManager, Like } from 'typeorm';
 import { pollMess } from '../blocks/pollMess';
 import { readFileSync, writeFileSync } from 'fs';
-import moment from '~plugins/moment';
-import { DATE_TIME_FORMAT } from 'src/common/constants';
+import moment from 'moment-timezone';
+import {
+    DATE_TIME_FORMAT,
+    MAX_INTEGER,
+    MINUTES_PER_HOUR,
+    TIMEZONE_NAME_DEFAULT,
+} from 'src/common/constants';
 import { User } from 'src/modules/user/entity/user.entity';
 import { IEvent, IInteractive } from '../bot.interface';
 import { parseToSnakeCase } from 'src/common/helpers/common.function';
 import { HttpStatus } from 'src/common/constants';
 import { UserResponseDto } from 'src/modules/user/dto/response/user-response.dto';
-import { RequestAbsenceStatus } from 'src/modules/request-absence/requestAbsence.constant';
+import {
+    RequestAbsenceDurationCondition,
+    RequestAbsenceStatus,
+} from 'src/modules/request-absence/requestAbsence.constant';
+import { UserStatus } from 'src/modules/user/user.constant';
 
 @Injectable()
 export class SlackService {
@@ -112,7 +121,7 @@ export class SlackService {
         const endTime = values?.timepicker?.picker2?.selectedTime;
         const reason = values?.reason?.inputReason?.value;
         const userDetail = await this.dbManager.findOne(User, {
-            select: ['id'],
+            select: ['id', 'status', 'email', 'fullName'],
             where: {
                 email: Like(`${user.name}@%`),
             },
@@ -125,21 +134,75 @@ export class SlackService {
             `${endDate} ${endTime}`,
             DATE_TIME_FORMAT.YYYY_MM_DD_HYPHEN_HH_MM_SS_COLON,
         ).fmHourOnlyTimeString();
-        const startAt = moment(
-            `${startDate} ${startTime}`,
-            DATE_TIME_FORMAT.YYYY_MM_DD_HYPHEN_HH_MM_SS_COLON,
-        );
-        const endAt = moment(
-            `${endDate} ${endTime}`,
-            DATE_TIME_FORMAT.YYYY_MM_DD_HYPHEN_HH_MM_SS_COLON,
-        );
-        const today = moment().unix();
-        if (startAt.unix() < today) {
+        const startAt = moment
+            .tz(`${startDate} ${startTime}`, TIMEZONE_NAME_DEFAULT)
+            .utc();
+        const endAt = moment
+            .tz(`${endDate} ${endTime}`, TIMEZONE_NAME_DEFAULT)
+            .utc();
+
+        // check if start at in the past
+        if (moment().startOfDay().isAfter(moment(startAt).startOfDay())) {
+            const message = await this.i18n.translate(
+                'request-absence.common.error.insufficientPermission',
+            );
+            return {
+                status: HttpStatus.FORBIDDEN,
+                message,
+            };
+        }
+
+        // check if user is active
+        if (userDetail.status !== UserStatus.ACTIVE) {
+            const message = await this.i18n.t(
+                'request-absence.common.error.notActiveUser',
+            );
             return {
                 status: HttpStatus.BAD_REQUEST,
-                message: await this.i18n.translate(
-                    'slack-bot.absence.form.inputPast',
-                ),
+                message,
+            };
+        }
+
+        // check overlap
+        const checkTimeOverlap =
+            await this.requestAbsenceService.checkTimeOverlap(
+                userDetail.id,
+                moment(startAt).fmFullTimeString(),
+                moment(endAt).fmFullTimeString(),
+            );
+        if (!checkTimeOverlap) {
+            const message = await this.i18n.translate(
+                'request-absence.common.error.existRequest',
+            );
+            return {
+                status: HttpStatus.BAD_REQUEST,
+                message,
+            };
+        }
+
+        // check request absence valid
+
+        const restTime = moment(startAt).diff(moment(), 'hour');
+        const requestAbsenceDuration =
+            moment(endAt).diff(moment(startAt), 'minute') / MINUTES_PER_HOUR;
+        const requestAbsenceCondition = RequestAbsenceDurationCondition.find(
+            (condition) => {
+                return (
+                    (condition?.min || 0) < requestAbsenceDuration &&
+                    requestAbsenceDuration <= (condition?.max || MAX_INTEGER)
+                );
+            },
+        );
+        if (
+            requestAbsenceCondition &&
+            restTime < requestAbsenceCondition.requiredMinimumDuration
+        ) {
+            const message = await this.i18n.translate(
+                'request-absence.common.error.invalid',
+            );
+            return {
+                status: HttpStatus.BAD_REQUEST,
+                message,
             };
         }
         if (startAt.diff(endAt) >= 0) {
@@ -178,10 +241,17 @@ export class SlackService {
                     ),
                 };
             }
-            await this.responseAbsenceMessage(
-                user.id,
-                await this.i18n.translate('slack-bot.absence.success'),
-            );
+            await Promise.all([
+                this.sendRequestAbsence(
+                    moment(startAt).toDate(),
+                    moment(endAt).toDate(),
+                    userDetail,
+                ),
+                this.responseAbsenceMessage(
+                    user.id,
+                    await this.i18n.translate('slack-bot.absence.success'),
+                ),
+            ]);
             return {
                 status: HttpStatus.OK,
                 message: 'success',

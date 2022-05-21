@@ -47,6 +47,8 @@ import {
     SuccessResponse,
 } from '../../common/helpers/api.response';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ContractService } from '../contract/services/contract.service';
+import { ContractStatus } from '../contract/contract.constant';
 import {
     AuthorizationGuard,
     Permissions,
@@ -71,6 +73,7 @@ export class UserController {
         private readonly usersService: UserService,
         private readonly i18n: I18nRequestScopeService,
         private readonly databaseService: DatabaseService,
+        private readonly contractService: ContractService,
         private readonly importUserService: ImportUserService,
     ) {}
 
@@ -462,6 +465,26 @@ export class UserController {
                 );
                 return new ErrorResponse(HttpStatus.ITEM_IS_USING, message, []);
             }
+
+            const contracts = await this.contractService.getAllContractsOfUser(
+                id,
+            );
+            // check has contracts which is active, if > 0 -> return error
+            const hasActiveContract = contracts.some(
+                (contract) => contract.status === ContractStatus.ACTIVE,
+            );
+            if (hasActiveContract) {
+                const message = await this.i18n.translate(
+                    'user.common.error.contract.exist',
+                );
+                return new ErrorResponse(HttpStatus.ITEM_IS_USING, message, []);
+            }
+            // delete other 'expired'/'stopped' contracts of this user
+            const contractIds = contracts.map((contract) => contract.id);
+            await this.contractService.deleteContractByIds(
+                contractIds,
+                req?.loginUser?.id,
+            );
             const [message] = await Promise.all([
                 this.i18n.translate('user.delete.success'),
                 this.usersService.deleteUser(id, req?.loginUser?.id),
@@ -523,6 +546,22 @@ export class UserController {
                             key: 'status',
                             errorCode: HttpStatus.BAD_REQUEST,
                             message: message,
+                        },
+                    ]);
+                }
+            }
+            if (data.status === UserStatus.INACTIVE) {
+                const activeContractsCount =
+                    await this.contractService.countActiveContractsByUserId(id);
+                if (activeContractsCount) {
+                    const message = await this.i18n.translate(
+                        'user.status.error.contract',
+                    );
+                    return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
+                        {
+                            message,
+                            errorCode: HttpStatus.ITEM_IS_USING,
+                            key: 'contract',
                         },
                     ]);
                 }
