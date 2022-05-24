@@ -59,7 +59,6 @@ export class CommonController {
     @Permissions([
         `${PermissionResources.USER}_${PermissionActions.READ}`,
         `${PermissionResources.CONTRACT}_${PermissionActions.READ}`,
-        `${PermissionResources.BILLING}_${PermissionActions.READ}`,
     ])
     async getUsers(
         @Query(

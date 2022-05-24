@@ -9,28 +9,16 @@ export enum ModuleName {
     USER = 'user',
     CONTRACT = 'contract',
     TIMEKEEPING = 'timekeeping',
-    ASSET = 'asset',
-    EVENT = 'event',
-    RECRUITMENT = 'recruitment',
-    BILLING = 'billing',
     ROLE = 'role',
-    REQUEST_ASSET = 'requestAsset',
     REQUEST_ABSENCE = 'requestAbsence',
-    TEAM = 'team',
     CONTRACT_TYPE = 'contractType',
 }
 
 export enum PermissionResources {
     USER = 'user',
     CONTRACT = 'contract',
-    TEAM = 'team',
     TIMEKEEPING = 'timekeeping',
     REQUEST_ABSENCE = 'request_absence',
-    ASSET = 'asset',
-    REQUEST_ASSET = 'request_asset',
-    EVENT = 'event',
-    RECRUITMENT = 'recruitment',
-    BILLING = 'billing',
     ROLE = 'role',
     SETTING = 'setting',
 }

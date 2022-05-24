@@ -1,33 +1,15 @@
 import { TableColumnOptions } from 'typeorm';
 
-export enum TeamUserRole {
-    DEVELOPER = 'developer',
-    TESTER = 'tester',
-    PROJECTMANAGER = 'project manager',
-    INFRA = 'infra',
-    ACCOUNTING = 'accounting',
-}
-
 export enum TABLE_NAME {
     Users = 'users',
     Files = 'files',
-    Candidates = 'candidates',
-    Teams = 'teams',
     GeneralSettings = 'general_settings',
-    CandidateInterviews = 'candidate_interviews',
-    CandidateEmail = 'candidate_emails',
     DeviceTypes = 'device_types',
-    Assets = 'asset',
     Roles = 'roles',
     Provinces = 'provinces',
-    UserLogging = 'user_logging',
-    Billings = 'billings',
     User_Tokens = 'user_tokens',
-    Events = 'event',
     Contracts = 'contracts',
-    TeamUsers = 'team_member',
     Timekeeping = 'timekeepings',
-    RequestAssets = 'request_asset',
     RequestAbsences = 'request_absences',
     FingerScan = 'finger_scanner_data',
     UserPosition = 'user_position',
@@ -39,7 +21,6 @@ export enum TABLE_NAME {
     PermissionResources = 'permission_resources',
     RolePermissions = 'role_permissions',
     UserTimekeepingHistory = 'user_timekeeping_histories',
-    CandidateInterviewHistories = 'candidate_interview_histories',
 }
 
 export const commonColumns: TableColumnOptions[] = [
@@ -102,14 +83,7 @@ export enum DBPermissionActions {
 export enum DBPermissionResources {
     USER = 'user',
     CONTRACT = 'contract',
-    TEAM = 'team',
     TIMEKEEPING = 'timekeeping',
     REQUEST_ABSENCE = 'request_absence',
-    ASSET = 'asset',
-    REQUEST_ASSET = 'request_asset',
-    EVENT = 'event',
-    RECRUITMENT = 'recruitment',
-    BILLING = 'billing',
-    ROLE = 'role',
     SETTING = 'setting',
 }

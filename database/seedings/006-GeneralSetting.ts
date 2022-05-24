@@ -117,32 +117,6 @@ export class UserGeneralSetting1724329509104 implements MigrationInterface {
                     },
                 ],
             },
-            {
-                key: SettingKey.ASSET_CATEGORY,
-                values: [
-                    {
-                        code: 'ELECTRONIC',
-                        value: {
-                            en: 'Electronic',
-                            vi: 'Đồ điện tử',
-                        },
-                    },
-                    {
-                        code: 'FURNITURE',
-                        value: {
-                            en: 'Furniture',
-                            vi: 'Đồ nội thất',
-                        },
-                    },
-                    {
-                        code: 'OTHER',
-                        value: {
-                            en: 'Other',
-                            vi: 'Khác',
-                        },
-                    },
-                ],
-            },
         ]);
     }
 

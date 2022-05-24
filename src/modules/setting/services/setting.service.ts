@@ -53,10 +53,7 @@ export class SettingService {
             // Update global variable
             if (data.key == SettingKey.USER_POSITION) {
                 this.globalDataService.getUserPositionList();
-            } else if (data.key == SettingKey.ASSET_CATEGORY) {
-                this.globalDataService.getAssetCategoryList();
             }
-
             await this.mapingInUseForSettingData(result, setting.key);
 
             return result;

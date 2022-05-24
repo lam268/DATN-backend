@@ -20,7 +20,6 @@ export let resourceList: IPermissionResource[] = [];
 export let permissionList: Permission[] = [];
 
 export let userPositionList: GeneralSettingValueDto[] = [];
-export let assetCategoryList: GeneralSettingValueDto[] = [];
 
 @Injectable()
 export class GlobalDataService {
@@ -34,9 +33,6 @@ export class GlobalDataService {
     private async getCachedData() {
         if (userPositionList.length === 0) {
             await this.getUserPositionList();
-        }
-        if (assetCategoryList.length === 0) {
-            await this.getAssetCategoryList();
         }
         if (actionList.length === 0) {
             await this.setActionList();
@@ -56,15 +52,6 @@ export class GlobalDataService {
         });
 
         userPositionList = setting?.values || [];
-    }
-
-    async getAssetCategoryList() {
-        const setting = await this.dbManager.findOne(GeneralSettings, {
-            select: settingListAtttributes,
-            where: { key: SettingKey.ASSET_CATEGORY },
-        });
-
-        assetCategoryList = setting?.values || [];
     }
 
     private async setActionList() {

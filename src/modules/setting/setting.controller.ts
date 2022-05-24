@@ -46,8 +46,6 @@ export class SettingController {
     @Permissions([
         `${PermissionResources.SETTING}_${PermissionActions.READ}`,
         `${PermissionResources.USER}_${PermissionActions.READ}`,
-        `${PermissionResources.ASSET}_${PermissionActions.READ}`,
-        `${PermissionResources.REQUEST_ASSET}_${PermissionActions.READ}`,
     ])
     async getSetting(
         @Query(

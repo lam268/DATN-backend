@@ -33,15 +33,13 @@
             "contract.exist": "Hợp đồng của người dùng này tồn tại, vui lòng xóa hợp đồng trước khi xóa người dùng",
             "province.notExist": "Tỉnh thành không tồn tại trong hệ thống",
             "provinceId.notExist": "Mã số tỉnh không tồn tại",
-            "positionId.notExist": "Vị trí không tồn tại",
-            "asset.exist": "Tài sản được chỉ định cho người dùng này tồn tại, vui lòng chỉ định cho người khác trước khi xóa người dùng"
+            "positionId.notExist": "Vị trí không tồn tại"
         }
     },
     "delete.success": "Xóa người dùng thành công",
     "status": {
         "error": {
             "notAllow": "Trạng thái này không được phép",
-            "asset": "Người dùng này đang quản lý ít nhất một tài sản,  vui lòng chỉ định cho người khác trước khi ngừng hoạt động người dùng",
             "contract": "Người dùng này có hợp đồng đang còn hiệu lực, vui lòng kết thúc hợp đồng trước khi ngừng hoạt động người dùng"
         }
     },
