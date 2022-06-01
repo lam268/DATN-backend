@@ -19,7 +19,6 @@ import { DatabaseService } from '../../common/services/database.service';
 import { CreateRequestAbsenceDto } from './dto/requests/create-request-absence.dto';
 import { RequestAbsenceResponse } from './dto/responses/api-response.dto';
 import { RequestAbsenceService } from './services/requestAbsence.service';
-import { SlackService } from '../slack-bot/services/bot.service';
 import { JwtGuard } from '../../common/guards/jwt.guard';
 import { UpdateRequestAbsenceDto } from './dto/requests/update-request-absence.dto';
 import {
@@ -61,7 +60,6 @@ import { UserStatus } from '../user/user.constant';
 export class RequestAbsenceController {
     constructor(
         private readonly requestAbsenceService: RequestAbsenceService,
-        private readonly slackService: SlackService,
         private readonly i18n: I18nRequestScopeService,
         private readonly databaseService: DatabaseService,
         private readonly userService: UserService,
@@ -258,13 +256,11 @@ export class RequestAbsenceController {
                     ]);
                 }
             }
-
             const newRequestAbsenes =
                 await this.requestAbsenceService.createRequestAbsence({
                     ...body,
                     createdBy: req?.loginUser?.id,
                 });
-            await this.slackService.sendRequestAbsence(startAt, endAt, user);
             return new SuccessResponse(newRequestAbsenes);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -451,13 +447,8 @@ export class RequestAbsenceController {
                 ]);
             }
 
-            const [savedRequestAbsence] = await Promise.all([
-                this.requestAbsenceService.updateRequestAbsence(id, data),
-                this.slackService.sendAbsenceStatusUpdateMessage(
-                    user.email,
-                    data.status,
-                ),
-            ]);
+            const savedRequestAbsence =
+                await this.requestAbsenceService.updateRequestAbsence(id, data);
             return new SuccessResponse(savedRequestAbsence);
         } catch (error) {
             throw new InternalServerErrorException(error);

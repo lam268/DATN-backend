@@ -12,7 +12,6 @@ import { TimekeepingModule } from './modules/timekeeping/timekeeping.module';
 import { RoleModule } from './modules/role/role.module';
 import { ContractModule } from './modules/contract/contract.module';
 import { FileModule } from './modules/file/file.module';
-import { BotModule } from './modules/slack-bot/bot.module';
 import { SetttingModule } from './modules/setting/setting.module';
 import envSchema from './common/config/validation-schema';
 import { ConfigModule } from '@nestjs/config';
@@ -42,7 +41,6 @@ import path from 'path';
         RoleModule,
         ContractModule,
         FileModule,
-        BotModule,
         SetttingModule,
     ],
     controllers: [AppController],
