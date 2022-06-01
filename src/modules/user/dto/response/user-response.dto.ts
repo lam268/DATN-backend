@@ -29,5 +29,4 @@ export class UserResponseDto {
     updatedBy?: number;
     idCardIssuePlace?: string;
     avatar?: Record<string, string>;
-    fingerId?: number;
 }

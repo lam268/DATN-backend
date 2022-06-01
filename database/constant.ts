@@ -11,7 +11,6 @@ export enum TABLE_NAME {
     Contracts = 'contracts',
     Timekeeping = 'timekeepings',
     RequestAbsences = 'request_absences',
-    FingerScan = 'finger_scanner_data',
     UserPosition = 'user_position',
     Bank = 'banks',
     ContractTypes = 'contract_types',

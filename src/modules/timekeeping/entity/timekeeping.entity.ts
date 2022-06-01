@@ -17,12 +17,6 @@ export class Timekeeping extends BaseEntity {
     @Index()
     userId: number;
 
-    @Column({
-        nullable: true,
-    })
-    @Index()
-    fingerId: number;
-
     @CreateDateColumn({ type: 'timestamp' })
     checkIn: string;
 

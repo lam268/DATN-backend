@@ -26,12 +26,7 @@ export const LastMonthOfTheYear = 12;
 export const userTimekeepingHistoryAttributes: (keyof UserTimekeepingHistory)[] =
     ['userId', 'month', 'year', 'paidLeaveHoursLeft', 'paidLeaveHoursUsed'];
 
-export const userDetailAttributes: (keyof User)[] = [
-    'id',
-    'email',
-    'fullName',
-    'fingerId',
-];
+export const userDetailAttributes: (keyof User)[] = ['id', 'email', 'fullName'];
 
 export const userTimekeepingAttributes = [
     'user.id',
@@ -44,7 +39,6 @@ export const userTimekeepingAttributes = [
 export const timekeepingAttributes = [
     'id',
     'userId',
-    'fingerId',
     'checkIn',
     'checkOut',
     'scanAt',

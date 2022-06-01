@@ -26,11 +26,6 @@ export class Timekeeping1632891593017 implements MigrationInterface {
                         isNullable: true,
                     },
                     {
-                        name: 'fingerId',
-                        type: 'int',
-                        isNullable: true,
-                    },
-                    {
                         name: 'checkIn',
                         type: 'timestamp',
                         default: 'CURRENT_TIMESTAMP',

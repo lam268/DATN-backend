@@ -74,11 +74,6 @@ export class User1632891593011 implements MigrationInterface {
                         default: `'${UserStatus.WAITING_FOR_APPROVAL}'`,
                     },
                     {
-                        name: 'fingerId',
-                        type: 'int',
-                        isNullable: true,
-                    },
-                    {
                         name: 'lastLoginAt',
                         type: 'timestamp',
                         isNullable: true,

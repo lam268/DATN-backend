@@ -553,23 +553,4 @@ export class UserController {
             throw new InternalServerErrorException(error);
         }
     }
-
-    @Post('/update-finger-id')
-    @Permissions([`${PermissionResources.USER}_${PermissionActions.CREATE}`])
-    @UseInterceptors(FileInterceptor('file'))
-    async upload(@UploadedFile() file) {
-        try {
-            const finalFileName = file?.originalname?.split('.');
-            if (!excel.includes(finalFileName[finalFileName.length - 1])) {
-                const message = await this.i18n.translate(
-                    'user.status.error.notAllow',
-                );
-                return new ErrorResponse(HttpStatus.BAD_REQUEST, message, []);
-            }
-            await this.usersService.uploadFileCSV(file);
-            return new SuccessResponse({});
-        } catch (error) {
-            throw new InternalServerErrorException(error);
-        }
-    }
 }

@@ -25,11 +25,6 @@ export interface ITimekeeping {
     unauthorizedLeaveHours?: number;
 }
 
-export interface IUpdateUserFinger {
-    userId: number;
-    fingerId: number;
-}
-
 export interface IUserTimekeepingHistory {
     userId?: number;
     month?: number;

@@ -73,8 +73,6 @@ export const DAYS_PER_WEEK = 7;
 export const SECONDS_PER_DAY = 86400;
 export const WORKING_HOUR_PER_DAY = 8;
 
-export const FINGER_SCANNER_DATA_FILE_MAXIMUM_STORE_DAYS = 30;
-
 export const MAX_CITIZEN_ID_LENGTH = 12;
 export const MIN_CITIZEN_ID_LENGTH = 9;
 
@@ -86,8 +84,6 @@ export const MIN_SOCIAL_INSURANCE_LENGTH = 10;
 
 export const MAX_TAX_CODE_LENGTH = 13;
 export const MIN_TAX_CODE_LENGTH = 10;
-
-export const FINGER_SCANNER_DATA_KEY = 'LAST_DAY_DOWNLOAD_FINGER_SCANNER_DATA';
 
 export const TOKYOTECHBAB_DOMAIN = '@tokyotechlab.com';
 

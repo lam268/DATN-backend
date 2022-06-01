@@ -82,9 +82,6 @@ export class User extends BaseEntity {
     })
     status: UserStatus;
 
-    @Column({ nullable: true })
-    fingerId: number;
-
     @Column({ type: 'timestamp', nullable: true })
     lastLoginAt: Date;
 

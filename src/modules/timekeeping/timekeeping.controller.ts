@@ -7,8 +7,6 @@ import {
     UseGuards,
     Get,
     Query,
-    UseInterceptors,
-    UploadedFile,
     Patch,
     Param,
     ParseIntPipe,
@@ -20,7 +18,6 @@ import { DatabaseService } from '../../common/services/database.service';
 import * as ExcelJS from 'exceljs';
 import {
     calculateActualWorkingHours,
-    readFingerDataFile,
     TimekeepingService,
 } from './services/timekeeping.service';
 import { JwtGuard } from '../../common/guards/jwt.guard';
@@ -35,7 +32,6 @@ import {
     TimekeepingDashboardQueryStringSchema,
     TimekeepingListQueryStringSchema,
 } from './dto/requests/get-time-line-request.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
     CreateTimekeepingSchema,
     ExportTimekeepingSchema,
@@ -398,35 +394,6 @@ export class TimekeepingController {
             const newTimekeeping =
                 await this.timekeepingService.createTimekeeping(body);
             return new SuccessResponse(newTimekeeping);
-        } catch (error) {
-            throw new InternalServerErrorException(error);
-        }
-    }
-
-    @Post('upload-finger-scanner-data')
-    @Permissions([
-        `${PermissionResources.TIMEKEEPING}_${PermissionActions.CREATE}`,
-    ])
-    @UseInterceptors(FileInterceptor('file'))
-    async upload(@Request() req, @UploadedFile() file) {
-        try {
-            const finalFileName = file?.originalname?.split('.');
-            if (finalFileName[finalFileName.length - 1] !== dat) {
-                const message = await this.i18n.translate(
-                    'user.status.error.notAllow',
-                );
-                return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
-                    {
-                        errorCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                        message,
-                        key: 'originalname',
-                    },
-                ]);
-            }
-
-            const text = Buffer.from(file?.buffer).toString('utf-8');
-            await readFingerDataFile(text);
-            return new SuccessResponse();
         } catch (error) {
             throw new InternalServerErrorException(error);
         }
