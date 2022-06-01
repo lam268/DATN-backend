@@ -264,15 +264,7 @@ export class RequestAbsenceController {
                     ...body,
                     createdBy: req?.loginUser?.id,
                 });
-            await Promise.all([
-                this.slackService.sendRequestAbsence(startAt, endAt, user),
-                this.databaseService.recordUserLogging({
-                    userId: req.loginUser?.id,
-                    route: req.route,
-                    oldValue: {},
-                    newValue: { ...newRequestAbsenes },
-                }),
-            ]);
+            await this.slackService.sendRequestAbsence(startAt, endAt, user);
             return new SuccessResponse(newRequestAbsenes);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -408,12 +400,6 @@ export class RequestAbsenceController {
 
             const updateRequestAbsence =
                 await this.requestAbsenceService.updateRequestAbsence(id, body);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...requestAbsence },
-                newValue: { ...updateRequestAbsence },
-            });
             return new SuccessResponse(updateRequestAbsence);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -472,12 +458,6 @@ export class RequestAbsenceController {
                     data.status,
                 ),
             ]);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...requestAbsence },
-                newValue: { ...savedRequestAbsence },
-            });
             return new SuccessResponse(savedRequestAbsence);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -523,18 +503,10 @@ export class RequestAbsenceController {
                 );
                 return new ErrorResponse(HttpStatus.FORBIDDEN, message, []);
             }
-            await Promise.all([
-                this.requestAbsenceService.deleteRequestAbsence(
-                    id,
-                    req.loginUser?.id,
-                ),
-                this.databaseService.recordUserLogging({
-                    userId: req.loginUser?.id,
-                    route: req.route,
-                    oldValue: { ...requestAbsence },
-                    newValue: {},
-                }),
-            ]);
+            await this.requestAbsenceService.deleteRequestAbsence(
+                id,
+                req.loginUser?.id,
+            );
             return new SuccessResponse({ id });
         } catch (error) {
             throw new InternalServerErrorException(error);

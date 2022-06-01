@@ -148,12 +148,6 @@ export class RoleController {
             const newRole: RoleResponseDto = await this.roleService.createRole(
                 data,
             );
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: {},
-                newValue: { ...newRole },
-            });
             return new SuccessResponse(newRole);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -226,16 +220,8 @@ export class RoleController {
             }
             data.updatedBy = req.loginUser.id;
             data.deletedBy = req.loginUser.id;
-            const oldValue = await this.databaseService.getDataById(Role, id);
             const savedRole: RoleResponseDto =
                 await this.roleService.updateRole(id, data);
-            const newValue = await this.databaseService.getDataById(Role, id);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...oldValue },
-                newValue: { ...newValue },
-            });
             return new SuccessResponse(savedRole);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -269,14 +255,7 @@ export class RoleController {
                     [],
                 );
             }
-            const oldValue = await this.databaseService.getDataById(Role, id);
             await this.roleService.removeRole(id, req?.loginUser?.id);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...oldValue },
-                newValue: {},
-            });
             return new SuccessResponse({ id });
         } catch (error) {
             throw new InternalServerErrorException(error);

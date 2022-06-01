@@ -187,12 +187,6 @@ export class ContractController {
             }
 
             const newContract = await this.contractsSevice.createContract(body);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: {},
-                newValue: { ...newContract },
-            });
             return new SuccessResponse(newContract);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -266,12 +260,6 @@ export class ContractController {
                 id,
                 body,
             );
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...contract },
-                newValue: { ...updatedContract },
-            });
             return new SuccessResponse(updatedContract);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -307,12 +295,6 @@ export class ContractController {
                 this.i18n.translate('contract.delete.success'),
                 this.contractsSevice.deleteContract(id, req?.loginUser?.id),
             ]);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...contract },
-                newValue: {},
-            });
             return new SuccessResponse({ id }, message);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -398,12 +380,6 @@ export class ContractController {
             body.updatedBy = req.loginUser.id;
             const updatedContract =
                 await this.contractsSevice.updateContractStatus(id, body);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...contract },
-                newValue: { ...updatedContract },
-            });
             return new SuccessResponse(updatedContract);
         } catch (error) {
             throw new InternalServerErrorException(error);

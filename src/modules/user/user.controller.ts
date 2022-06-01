@@ -20,15 +20,12 @@ import { UserService } from './services/user.service';
 import {
     CreateUserDto,
     CreateUserSchema,
-    ImportUserSchema,
-    ImportUsersDto,
 } from './dto/requests/create-user.dto';
 import {
     UpdateUserDto,
     UpdateUserSchema,
 } from './dto/requests/update-user.dto';
 import { JwtGuard } from '../../common/guards/jwt.guard';
-import { DEFAULT_LIMIT_FOR_PAGINATION } from '../../common/constants';
 import { UserList } from './dto/response/api-response.dto';
 import { DatabaseService } from '../../common/services/database.service';
 import { User } from './entity/user.entity';
@@ -265,12 +262,6 @@ export class UserController {
             }
 
             const newUser = await this.usersService.createUser(data);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: {},
-                newValue: { ...newUser },
-            });
             return new SuccessResponse(newUser);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -430,13 +421,6 @@ export class UserController {
             }
 
             const savedUser = await this.usersService.updateUser(id, data);
-
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...currentUser },
-                newValue: { ...savedUser },
-            });
             return new SuccessResponse(savedUser);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -489,12 +473,6 @@ export class UserController {
                 this.i18n.translate('user.delete.success'),
                 this.usersService.deleteUser(id, req?.loginUser?.id),
             ]);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...user },
-                newValue: {},
-            });
             return new SuccessResponse({ id }, message);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -570,14 +548,6 @@ export class UserController {
                 id,
                 data,
             );
-
-            const newValue = await this.databaseService.getDataById(User, id);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...user },
-                newValue: { ...newValue },
-            });
             return new SuccessResponse(savedUser);
         } catch (error) {
             throw new InternalServerErrorException(error);

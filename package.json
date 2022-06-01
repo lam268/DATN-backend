@@ -14,12 +14,7 @@
         "seed:run": "ts-node ./node_modules/typeorm/cli.js migration:run  -f database/config.ts -c seed ",
         "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
         "format": "prettier --write \"src/**/*.ts\"",
-        "start:prod": "node dist/src/main.js",
-        "schema:drop": "ts-node ./node_modules/typeorm/cli.js schema:drop -f database/config.ts",
-        "drop:migration": "yarn run schema:drop && yarn run migration:run",
-        "wdio": "wdio run wdio.conf.js",
-        "download-file": "sh download.sh $1 $2",
-        "postinstall": "husky install"
+        "drop:migration": "yarn run schema:drop && yarn run migration:run"
     },
     "dependencies": {
         "@joi/date": "^2.1.0",

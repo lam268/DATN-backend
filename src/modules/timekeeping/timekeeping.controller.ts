@@ -397,12 +397,6 @@ export class TimekeepingController {
             }
             const newTimekeeping =
                 await this.timekeepingService.createTimekeeping(body);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: {},
-                newValue: { ...newTimekeeping },
-            });
             return new SuccessResponse(newTimekeeping);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -486,12 +480,6 @@ export class TimekeepingController {
             }
             const updateTimekeeping =
                 await this.timekeepingService.updateTimekeeping(id, body);
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: {},
-                newValue: { ...updateTimekeeping },
-            });
             return new SuccessResponse(updateTimekeeping);
         } catch (error) {
             throw new InternalServerErrorException(error);

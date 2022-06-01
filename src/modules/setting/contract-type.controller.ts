@@ -183,12 +183,6 @@ export class ContractTypeController {
                     ...data,
                     updatedBy: req.loginUser.id,
                 });
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...contractType },
-                newValue: { ...updatedContractType },
-            });
             return new SuccessResponse(updatedContractType);
         } catch (error) {
             throw new InternalServerErrorException(error);
@@ -228,12 +222,6 @@ export class ContractTypeController {
             const message = await this.i18n.translate(
                 'contract-type.successMessages.delete',
             );
-            await this.databaseService.recordUserLogging({
-                userId: req.loginUser?.id,
-                route: req.route,
-                oldValue: { ...contractType },
-                newValue: {},
-            });
             return new SuccessResponse({ id }, message);
         } catch (error) {
             throw new InternalServerErrorException(error);
