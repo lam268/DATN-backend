@@ -119,7 +119,6 @@ export class SettingService {
         const schedule = await this.dbManager.findOne(GeneralSettings, {
             where: { key: SettingKey.PAID_LEAVE_DAYS_RESET_SCHEDULE },
         });
-
-        return schedule.values?.[currentYear.toString()];
+        return schedule?.values?.[currentYear.toString()];
     }
 }

@@ -22,7 +22,7 @@ export class SeedingUser1720963593400 implements MigrationInterface {
             const userDefault = {
                 fullName: 'Super Admin',
                 email: 'super-admin@admin.com',
-                password: bcrypt.hashSync('datn@1234', bcrypt.genSaltSync(10)),
+                password: bcrypt.hashSync('L@m261019', bcrypt.genSaltSync(10)),
                 status: UserStatus.ACTIVE,
                 roleId: role.id,
                 position: 'CEO',
@@ -33,18 +33,24 @@ export class SeedingUser1720963593400 implements MigrationInterface {
                     id: 1,
                     fullName: 'Admin',
                     email: 'admin@admin.com',
+                    isSuperAdmin: 1,
                 },
                 {
                     ...userDefault,
-                    id: 90,
-                    fullName: 'ledth',
-                    email: 'ledth@tokyotechlab.com',
+                    id: 2,
+                    fullName: 'Nguyen duc Nam',
+                    email: 'namnd@unicorn.com',
                 },
                 {
                     ...userDefault,
-                    fullName: 'lamlv',
+                    fullName: 'Le Vu Lam',
                     email: 'lamlevu26@gmail.com',
+                    id: 3,
+                },
+                {
+                    ...userDefault,
                     id: 4,
+                    fullName: 'Le Duc Manh',
                 },
             ];
 

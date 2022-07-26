@@ -98,7 +98,6 @@ export class TimekeepingController {
                 ...query,
                 userIds: [req.loginUser.id],
             });
-
             if (!items.length) {
                 const message = await this.i18n.t(
                     'timekeeping.common.error.doNotHaveDataForExcelExport',
@@ -108,7 +107,6 @@ export class TimekeepingController {
             const userTimekeeping = items[0];
             forEach(userTimekeeping.timekeepings, (value, key) => {
                 const workingInfo = calculateActualWorkingHours(value);
-
                 Object.assign(userTimekeeping.timekeepings[key], {
                     ...workingInfo,
                 });
@@ -120,7 +118,6 @@ export class TimekeepingController {
                 timkeepings: userTimekeeping.timekeepings,
                 paidLeaveHours: userTimekeeping.paidLeaveHourThisMonth,
             };
-
             const lastYear = moment()
                 .subtract(1, 'year')
                 .tz(TIMEZONE_NAME_DEFAULT)
@@ -130,7 +127,6 @@ export class TimekeepingController {
             const queryYear = moment(query.startDate)
                 .tz(TIMEZONE_NAME_DEFAULT)
                 .year();
-
             const [
                 holidayList,
                 lastYearTimekeepingHistory,
@@ -159,7 +155,6 @@ export class TimekeepingController {
                     true,
                 );
             });
-
             let leaveHoursOfMonth = 0;
             let authorizedLeaveHoursOfMonth = 0;
             let workingHoursOfMonth = 0;

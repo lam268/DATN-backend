@@ -63,60 +63,6 @@ export class UserGeneralSetting1724329509104 implements MigrationInterface {
                     },
                 ],
             },
-            {
-                key: SettingKey.APPLIED_POSITION,
-                values: [
-                    {
-                        code: 'Developer',
-                        value: {
-                            en: 'Developer',
-                            vi: 'Lập trình viên',
-                        },
-                    },
-                    {
-                        code: 'CTO',
-                        value: {
-                            en: 'CTO',
-                            vi: 'Giám đốc kỹ thuật',
-                        },
-                    },
-                    {
-                        code: 'COO',
-                        value: {
-                            en: 'COO',
-                            vi: 'Phó giám đốc điều hành',
-                        },
-                    },
-                    {
-                        code: 'QA',
-                        value: {
-                            en: 'QA',
-                            vi: 'QA',
-                        },
-                    },
-                    {
-                        code: 'TESTER',
-                        value: {
-                            en: 'Tester',
-                            vi: 'Kiểm thử',
-                        },
-                    },
-                    {
-                        code: 'PROJECT_MANAGER',
-                        value: {
-                            en: 'Project manager',
-                            vi: 'Trưởng dự án',
-                        },
-                    },
-                    {
-                        code: 'HUMAN_RESOURCE',
-                        value: {
-                            en: 'Human resources',
-                            vi: 'Nhân sự',
-                        },
-                    },
-                ],
-            },
         ]);
     }
 

@@ -13,7 +13,6 @@ import {
     MINUTES_PER_HOUR,
     ORDER_DIRECTION,
     TIMEZONE_NAME_DEFAULT,
-    TOKYOTECHBAB_DOMAIN,
     TYPE_ORM_ORDER_DIRECTION,
     workingTimes,
     WORKING_HOUR_PER_DAY,
@@ -21,22 +20,15 @@ import {
 import {
     Brackets,
     EntityManager,
-    Between,
-    getManager,
     MoreThanOrEqual,
     LessThanOrEqual,
 } from 'typeorm';
 import moment from '~plugins/moment';
 import { TimekeepingListQueryStringDto } from '../dto/requests/get-time-line-request.dto';
-import forEach from 'lodash/forEach';
-import isEmpty from 'lodash/isEmpty';
-import difference from 'lodash/difference';
-import map from 'lodash/map';
 import {
     timekeepingAttributes,
     timekeepingListAttributes,
     TimekeepingOrderBy,
-    userDetailAttributes,
     userTimekeepingAttributes,
 } from '../timekeeping.constant';
 import { UserService } from '../../user/services/user.service';
