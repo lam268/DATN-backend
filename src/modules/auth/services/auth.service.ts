@@ -128,19 +128,19 @@ export class AuthService {
                     hashToken,
                 });
                 // update lastLoginAt for user
-                await transactionManager.update(
-                    User,
-                    { id: user.id },
-                    { lastLoginAt: new Date() },
-                );
             });
-
+            await this.dbManager.update(
+                User,
+                { id: user.id },
+                { lastLoginAt: new Date() },
+            );
             return {
                 user,
                 accessToken,
                 refreshToken,
             };
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }

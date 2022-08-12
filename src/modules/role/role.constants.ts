@@ -33,7 +33,5 @@ export enum PermissionActions {
     READ_PERSONAL = 'read_personal',
     UPDATE_PERSONAL = 'update_personal',
     DELETE_PERSONAL = 'delete_personal',
-    HR_ROLE = 'hr_role',
     UPDATE_STATUS = 'update_status',
-    UPDATE_ROLE = 'update_role',
 }
