@@ -50,6 +50,8 @@ import { HttpStatus } from 'src/common/constants';
 import { IPermissionResponse } from '../role/role.interface';
 import { UserService } from '../user/services/user.service';
 import { TrimObjectPipe } from 'src/common/pipes/trim.object.pipe';
+import { ChangePasswordDto } from './dto/requests/change-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Controller({
     path: 'auth',
@@ -399,6 +401,45 @@ export class AuthController {
         try {
             const result = await this.authService.logout(req.user);
             return new SuccessResponse(result);
+        } catch (error) {
+            throw new InternalServerErrorException(error);
+        }
+    }
+
+    @Post('change-password')
+    @UseGuards(JwtGuard, AuthorizationGuard)
+    async changePassword(
+        @Request() req,
+        @Body(new TrimObjectPipe()) body: ChangePasswordDto,
+    ) {
+        try {
+            const { email } = req.loginUser;
+            const user = await this.authService.getUserByEmail(email, [
+                ...usersAttributes,
+                'password',
+            ]);
+            if (!user) {
+                const message = await this.i18n.translate(
+                    'auth.errors.user.notFound',
+                );
+                return new ErrorResponse(HttpStatus.NOT_FOUND, message, []);
+            }
+            const isCorrectPassword = await user.validatePassword(
+                body.oldPassword,
+            );
+            if (!isCorrectPassword) {
+                const message = await this.i18n.translate(
+                    'auth.errors.user.invalidPwd',
+                );
+                return new ErrorResponse(
+                    HttpStatus.INVALID_USERNAME_OR_PASSWORD,
+                    message,
+                    [],
+                );
+            }
+            return new SuccessResponse(
+                await this.authService.changePassword(body, user),
+            );
         } catch (error) {
             throw new InternalServerErrorException(error);
         }

@@ -51,19 +51,13 @@ export async function getExcelHeader(
     daysInMonth: number,
 ) {
     const excelHeaderRowsHeight = 25;
-    const officeNameRow = ws.addRow([
-        'CÔNG TY CỔ PHẦN TOKYO TECH LAB VIỆT NAM',
-    ]);
+    const officeNameRow = ws.addRow(['CÔNG TY CỔ PHẦN CHÚ KỲ LÂN']);
     officeNameRow.height = excelHeaderRowsHeight;
     officeNameRow.eachCell({ includeEmpty: true }, (cell) => {
         cell.font = {
             bold: true,
         };
     });
-    ws.addRow([
-        'Địa chỉ: Tầng 2 - CT3, tòa nhà Yên Hòa Park View, số 3 Vũ Phạm Hàm, P. Yên Hòa, Q. Cầu Giấy, Hà Nội, Việt Nam',
-    ]).height = excelHeaderRowsHeight;
-    ws.addRow(['MST: 0108849180']).height = excelHeaderRowsHeight;
     const titleRow = ws.addRow([`BẢNG CHẤM CÔNG THÁNG ${month}/${year}.`]);
     titleRow.eachCell({ includeEmpty: true }, (cell) => {
         cell.font = {

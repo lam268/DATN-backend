@@ -65,7 +65,7 @@ import { TrimObjectPipe } from 'src/common/pipes/trim.object.pipe';
 import round from 'lodash/round';
 import { UserService } from '../user/services/user.service';
 import { UserStatus } from '../user/user.constant';
-import { LastMonthOfTheYear, dat } from './timekeeping.constant';
+import { LastMonthOfTheYear } from './timekeeping.constant';
 import { UserTimekeepingHistoryService } from './services/userTimekeepingHistory.service';
 import { SettingService } from '../setting/services/setting.service';
 

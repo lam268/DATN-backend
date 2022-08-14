@@ -17,6 +17,8 @@ import { User } from 'src/modules/user/entity/user.entity';
 import { UserToken } from '../entity/user-token.entity';
 import { Role } from 'src/modules/role/entity/role.entity';
 import { RolePermission } from 'src/modules/role/entity/rolePermissionRelation.entity';
+import { ChangePasswordDto } from '../dto/requests/change-password.dto';
+import * as bcrypt from 'bcrypt';
 
 export const usersAttributes: (keyof User)[] = [
     'id',
@@ -287,6 +289,31 @@ export class AuthService {
                 accessToken,
                 refreshToken,
             };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async changePassword(data: ChangePasswordDto, user: User) {
+        try {
+            const userRepository = this.dbManager.getRepository(User);
+            const hashPassword = await bcrypt.hash(
+                data.newPassword,
+                bcrypt.genSaltSync(10),
+            );
+            await userRepository.update(
+                { id: user.id },
+                {
+                    password: hashPassword,
+                    updatedBy: user.id,
+                    updatedAt: new Date(),
+                },
+            );
+            return await userRepository.findOne({
+                where: {
+                    id: user.id,
+                },
+            });
         } catch (error) {
             throw error;
         }

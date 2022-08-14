@@ -461,12 +461,14 @@ export function calculateActualWorkingHours(timekeeping: ITimekeeping) {
                 WORKING_HOUR_PER_DAY - leaveMinutesAllDay / MINUTES_PER_HOUR,
         };
     }
-    let checkInAt = moment(timekeeping.checkIn);
-    let checkOutAt = moment(timekeeping.checkOut);
-
+    let checkInAt = moment(timekeeping.checkIn).add(7, 'hour');
+    let checkOutAt = moment(timekeeping.checkOut).add(7, 'hour');
     if (checkInAt.isBefore(convertedWorkingTimes.morning.startTime)) {
         // user checkin before start of morning working time then set it to start of morning working time
-        checkInAt = convertedWorkingTimes.morning.startTime;
+        checkInAt = moment(convertedWorkingTimes.morning.startTime).set(
+            'date',
+            new Date(checkInAt.toString()).getDate(),
+        );
     } else if (
         moment(checkInAt).isBetween(
             timeEndMorningMoment,
@@ -479,7 +481,10 @@ export function calculateActualWorkingHours(timekeeping: ITimekeeping) {
 
     if (checkOutAt.isAfter(convertedWorkingTimes.afternoon.endTime)) {
         // user checkout after end of afternoon working time then set it to end of afternoon working time
-        checkOutAt = convertedWorkingTimes.afternoon.endTime;
+        checkOutAt = moment(convertedWorkingTimes.afternoon.endTime).set(
+            'date',
+            new Date(checkOutAt.toString()).getDate(),
+        );
     } else if (
         moment(checkOutAt).isBetween(
             timeEndMorningMoment,
@@ -496,14 +501,14 @@ export function calculateActualWorkingHours(timekeeping: ITimekeeping) {
         checkOutAt.isSameOrAfter(timeStartAfternoonMoment)
     ) {
         // minus rest time
-        maxWorkingTimeInMinutes =
-            checkOutAt.diff(checkInAt, 'minutes') - MINUTES_PER_HOUR;
+        maxWorkingTimeInMinutes = Math.abs(
+            checkOutAt.diff(checkInAt, 'minutes') - MINUTES_PER_HOUR,
+        );
     } else {
         maxWorkingTimeInMinutes = checkOutAt.diff(checkInAt, 'minute');
     }
     // in case checkin and checkout are covered by a request absence then working time is negative
     maxWorkingTimeInMinutes = Math.max(maxWorkingTimeInMinutes, 0);
-
     return {
         workingHours:
             (maxWorkingTimeInMinutes - leaveMinutesInWork) / MINUTES_PER_HOUR,

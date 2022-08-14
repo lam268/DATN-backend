@@ -14,7 +14,7 @@ export function createWinstonLogger(
     return winston.createLogger({
         level: configService.get(ConfigKey.LOG_LEVEL),
         format: winston.format.json(),
-        defaultMeta: { service: 'tims' },
+        defaultMeta: { service: 'datn' },
         transports: [
             new winston.transports.Console({
                 level:
@@ -45,7 +45,7 @@ export function createWinstonLogger(
                 return winston.createLogger({
                     level: configService.get(ConfigKey.LOG_LEVEL),
                     format: winston.format.json(),
-                    defaultMeta: { service: 'tims' },
+                    defaultMeta: { service: 'test' },
                     transports: [
                         new winston.transports.Console({
                             level:
@@ -57,7 +57,7 @@ export function createWinstonLogger(
                         new winston.transports.DailyRotateFile({
                             filename: `${configService.get(
                                 ConfigKey.LOG_ROOT_FOLDER,
-                            )}/tims-%DATE%.log`,
+                            )}/test-%DATE%.log`,
                             datePattern: 'YYYY-MM-DD-HH',
                             zippedArchive: true,
                             maxSize: '20m',
