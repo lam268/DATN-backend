@@ -22,6 +22,9 @@ import {
     EntityManager,
     MoreThanOrEqual,
     LessThanOrEqual,
+    getManager,
+    Between,
+    In,
 } from 'typeorm';
 import moment from '~plugins/moment';
 import { TimekeepingListQueryStringDto } from '../dto/requests/get-time-line-request.dto';
@@ -29,6 +32,7 @@ import {
     timekeepingAttributes,
     timekeepingListAttributes,
     TimekeepingOrderBy,
+    userDetailAttributes,
     userTimekeepingAttributes,
 } from '../timekeeping.constant';
 import { UserService } from '../../user/services/user.service';
@@ -48,6 +52,7 @@ import { makeFileUrl } from 'src/common/helpers/common.function';
 import { Moment } from 'moment';
 import { ContractService } from 'src/modules/contract/services/contract.service';
 import { Contract } from 'src/modules/contract/entity/contract.entity';
+import { forEach, isEmpty } from 'lodash';
 
 @Injectable()
 export class TimekeepingService {
@@ -596,4 +601,94 @@ export function parseUserData(
         timekeepings: timekeepingResult,
         timekeepingHistory,
     };
+}
+
+export async function readFingerDataFile(resultReadFile) {
+    try {
+        const rows = resultReadFile.split('\n');
+        const results = {};
+
+        for await (const line of rows) {
+            if (line) {
+                const _rowData = line.replace(/\s+/g, ' ').split(' ');
+                const name = _rowData[1];
+                const dateF = _rowData[2];
+                const dateTime = dateF + ' ' + _rowData[3];
+                if (results[name]) {
+                    results[name].push(dateTime);
+                } else {
+                    results[name] = [dateTime];
+                }
+            }
+        }
+        if (!isEmpty(results)) {
+            const date = results[Object.keys(results)[0]][0];
+            const startOfDay = moment(date).startOfDay().fmFullTimeString();
+            const endOfDay = moment(date).endOfDay().fmFullTimeString();
+            forEach(results, async function (value, key) {
+                const userNameGmail = `${key.toLowerCase()}@gmail.com`;
+                const userNameMail = `${key.toLowerCase()}@tokyotechlab.com`;
+                const user = await getManager().findOne(User, {
+                    select: userDetailAttributes,
+                    where: { email: In([userNameGmail, userNameMail]) },
+                });
+                const resultTime = await getManager()
+                    .createQueryBuilder(Timekeeping, 'timekeepings')
+                    .where((queryBuilder) => {
+                        queryBuilder.andWhere(
+                            new Brackets((qb) => {
+                                qb.where(
+                                    'checkIn > :startOfDay AND checkIn < :endOfDay',
+                                    {
+                                        startOfDay,
+                                        endOfDay,
+                                    },
+                                ).andWhere('userId = :userId', {
+                                    userId: user?.id,
+                                });
+                            }),
+                        );
+                    })
+                    .getRawMany();
+                if (resultTime.length === 0) {
+                    await getManager().insert(Timekeeping, {
+                        userId: user?.id || null,
+                        checkIn: moment(results[key][0])
+                            .utc()
+                            .fmFullTimeString(),
+                        checkOut: moment(results[key][results[key].length - 1])
+                            .utc()
+                            .fmFullTimeString(),
+                        scanAt: moment().fmDayString(),
+                    });
+                } else {
+                    await getManager()
+                        .createQueryBuilder()
+                        .update(Timekeeping)
+                        .set({
+                            checkIn: moment(results[key][0])
+                                .utc()
+                                .fmFullTimeString(),
+                            checkOut: moment(
+                                results[key][results[key].length - 1],
+                            )
+                                .utc()
+                                .fmFullTimeString(),
+                        })
+                        .where('userId = :userId', { userId: user?.id })
+                        .andWhere('checkIn BETWEEN :start AND :end', {
+                            start: moment(results[key][0])
+                                .startOfDay()
+                                .fmFullTimeString(),
+                            end: moment(results[key][0])
+                                .endOfDay()
+                                .fmFullTimeString(),
+                        })
+                        .execute();
+                }
+            });
+        }
+    } catch (error) {
+        throw error;
+    }
 }

@@ -11,6 +11,8 @@ import {
     Param,
     ParseIntPipe,
     Delete,
+    UseInterceptors,
+    UploadedFile,
 } from '@nestjs/common';
 import { I18nRequestScopeService } from 'nestjs-i18n';
 import { JoiValidationPipe } from '../../common/pipes/joi.validation.pipe';
@@ -18,6 +20,7 @@ import { DatabaseService } from '../../common/services/database.service';
 import * as ExcelJS from 'exceljs';
 import {
     calculateActualWorkingHours,
+    readFingerDataFile,
     TimekeepingService,
 } from './services/timekeeping.service';
 import { JwtGuard } from '../../common/guards/jwt.guard';
@@ -68,6 +71,7 @@ import { UserStatus } from '../user/user.constant';
 import { LastMonthOfTheYear } from './timekeeping.constant';
 import { UserTimekeepingHistoryService } from './services/userTimekeepingHistory.service';
 import { SettingService } from '../setting/services/setting.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('timekeeping')
 @UseGuards(JwtGuard, AuthorizationGuard)
@@ -389,6 +393,35 @@ export class TimekeepingController {
             const newTimekeeping =
                 await this.timekeepingService.createTimekeeping(body);
             return new SuccessResponse(newTimekeeping);
+        } catch (error) {
+            throw new InternalServerErrorException(error);
+        }
+    }
+
+    @Post('upload-finger-scanner-data')
+    @Permissions([
+        `${PermissionResources.TIMEKEEPING}_${PermissionActions.CREATE}`,
+    ])
+    @UseInterceptors(FileInterceptor('file'))
+    async upload(@Request() req, @UploadedFile() file) {
+        try {
+            const finalFileName = file?.originalname?.split('.');
+            if (finalFileName[finalFileName.length - 1] !== 'dat') {
+                const message = await this.i18n.translate(
+                    'user.status.error.notAllow',
+                );
+                return new ErrorResponse(HttpStatus.BAD_REQUEST, message, [
+                    {
+                        errorCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                        message,
+                        key: 'originalname',
+                    },
+                ]);
+            }
+
+            const text = Buffer.from(file?.buffer).toString('utf-8');
+            await readFingerDataFile(text);
+            return new SuccessResponse();
         } catch (error) {
             throw new InternalServerErrorException(error);
         }
